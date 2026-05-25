@@ -1,0 +1,500 @@
+/**
+ * ═══════════════════════════════════════════════
+ *  SIMRS Portal — Unified Design System (Global)
+ *  Master stylesheet: typography, tokens, glass,
+ *  animations, interactive effects.
+ * ═══════════════════════════════════════════════
+ */
+
+/* ── Google Font: Plus Jakarta Sans ── */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+/* ─────────────────────────────────────
+   1. ROOT DESIGN TOKENS
+   ───────────────────────────────────── */
+:root {
+    /* Surface */
+    --bg-base: #020617;
+    --bg-surface: #0f172a;
+    --bg-surface-alt: #1e293b;
+
+    /* Glass */
+    --glass-bg: rgba(15, 23, 42, 0.55);
+    --glass-bg-strong: rgba(15, 23, 42, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.07);
+    --glass-border-hover: rgba(255, 255, 255, 0.14);
+    --glass-blur: 20px;
+
+    /* Brand Gradients */
+    --grad-primary: linear-gradient(135deg, #06b6d4, #10b981);
+    --grad-accent: linear-gradient(135deg, #0ea5e9, #4f46e5);
+    --grad-emerald: linear-gradient(135deg, #10b981, #14b8a6);
+    --grad-cyan: linear-gradient(135deg, #06b6d4, #3b82f6);
+    --grad-text: linear-gradient(135deg, #67e8f9, #34d399);
+
+    /* Text */
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+
+    /* Accent Colors */
+    --accent-cyan: #06b6d4;
+    --accent-emerald: #10b981;
+    --accent-sky: #0ea5e9;
+    --accent-indigo: #6366f1;
+    --accent-amber: #f59e0b;
+    --accent-rose: #f43f5e;
+
+    /* Shadows */
+    --shadow-glow-cyan: 0 0 30px rgba(6, 182, 212, 0.15);
+    --shadow-glow-emerald: 0 0 30px rgba(16, 185, 129, 0.15);
+    --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --shadow-card-hover: 0 16px 48px rgba(0, 0, 0, 0.4);
+
+    /* Transitions */
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --duration-fast: 150ms;
+    --duration-normal: 300ms;
+    --duration-slow: 500ms;
+
+    /* Radii */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-2xl: 24px;
+    --radius-full: 9999px;
+}
+
+/* ─────────────────────────────────────
+   2. BASE RESETS & TYPOGRAPHY
+   ───────────────────────────────────── */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* ─────────────────────────────────────
+   3. SCROLLBAR
+   ───────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--bg-surface-alt); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* Thin sidebar scrollbar */
+.scrollbar-thin::-webkit-scrollbar { width: 3px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+/* ─────────────────────────────────────
+   4. GLASSMORPHISM UTILITIES
+   ───────────────────────────────────── */
+.sim-glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+}
+
+.sim-glass-strong {
+    background: var(--glass-bg-strong);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+}
+
+.sim-glass:hover {
+    border-color: var(--glass-border-hover);
+}
+
+/* ─────────────────────────────────────
+   5. CARD SYSTEM
+   ───────────────────────────────────── */
+.sim-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-2xl);
+    padding: 24px;
+    box-shadow: var(--shadow-card);
+    transition: all var(--duration-normal) var(--ease-smooth);
+}
+
+.sim-card:hover {
+    box-shadow: var(--shadow-card-hover);
+    border-color: var(--glass-border-hover);
+}
+
+.sim-card-interactive:hover {
+    transform: translateY(-4px) scale(1.01);
+}
+
+/* ─────────────────────────────────────
+   6. GRADIENT TEXT UTILITY
+   ───────────────────────────────────── */
+.sim-gradient-text {
+    background: var(--grad-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.sim-gradient-text-white {
+    background: linear-gradient(180deg, #ffffff 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ─────────────────────────────────────
+   7. BUTTON SYSTEM
+   ───────────────────────────────────── */
+.sim-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all var(--duration-normal) var(--ease-smooth);
+    text-decoration: none;
+    letter-spacing: 0.3px;
+}
+
+.sim-btn-primary {
+    background: var(--grad-primary);
+    color: white;
+    box-shadow: 0 4px 15px rgba(6, 182, 212, 0.25);
+}
+.sim-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(6, 182, 212, 0.4);
+}
+
+.sim-btn-accent {
+    background: var(--grad-accent);
+    color: white;
+    box-shadow: 0 4px 15px rgba(14, 165, 233, 0.25);
+}
+.sim-btn-accent:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.4);
+}
+
+.sim-btn-ghost {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--glass-border);
+}
+.sim-btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border-color: var(--glass-border-hover);
+}
+
+/* ─────────────────────────────────────
+   8. FORM INPUTS (DARK UNIFIED)
+   ───────────────────────────────────── */
+.sim-input,
+.sim-select {
+    padding: 14px 18px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+    font-family: inherit;
+    background-color: rgba(15, 23, 42, 0.6);
+    color: var(--text-primary);
+    transition: all var(--duration-normal) var(--ease-smooth);
+    width: 100%;
+}
+
+.sim-input:focus,
+.sim-select:focus {
+    outline: none;
+    border-color: var(--accent-cyan);
+    background-color: rgba(15, 23, 42, 0.9);
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+}
+
+.sim-input::placeholder {
+    color: var(--text-dim);
+}
+
+.sim-select option {
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+}
+
+.sim-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+/* ─────────────────────────────────────
+   9. TABLE SYSTEM
+   ───────────────────────────────────── */
+.sim-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.sim-table th {
+    padding: 14px 18px;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 1.2px;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.sim-table td {
+    padding: 14px 18px;
+    text-align: left;
+    font-size: 0.9rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    color: var(--text-secondary);
+}
+
+.sim-table tbody tr {
+    transition: background var(--duration-fast) var(--ease-smooth);
+}
+
+.sim-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* ─────────────────────────────────────
+   10. BADGE SYSTEM
+   ───────────────────────────────────── */
+.sim-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: var(--radius-full);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sim-badge-cyan {
+    background: rgba(6, 182, 212, 0.1);
+    border: 1px solid rgba(6, 182, 212, 0.25);
+    color: #67e8f9;
+}
+
+.sim-badge-emerald {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    color: #34d399;
+}
+
+.sim-badge-amber {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    color: #fbbf24;
+}
+
+.sim-badge-rose {
+    background: rgba(244, 63, 94, 0.1);
+    border: 1px solid rgba(244, 63, 94, 0.25);
+    color: #fb7185;
+}
+
+.sim-badge-slate {
+    background: rgba(100, 116, 139, 0.1);
+    border: 1px solid rgba(100, 116, 139, 0.25);
+    color: #94a3b8;
+}
+
+/* ─────────────────────────────────────
+   11. FLOATING BACKGROUND SHAPES
+   ───────────────────────────────────── */
+.sim-bg-shapes {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.sim-shape {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    animation: simFloat 25s infinite ease-in-out alternate;
+    opacity: 0.35;
+}
+
+.sim-shape-1 {
+    width: 500px; height: 500px;
+    background: #0284c7;
+    top: -15%; left: -8%;
+    animation-delay: 0s;
+}
+
+.sim-shape-2 {
+    width: 400px; height: 400px;
+    background: #4f46e5;
+    bottom: -12%; right: -5%;
+    animation-delay: -6s;
+}
+
+.sim-shape-3 {
+    width: 320px; height: 320px;
+    background: #059669;
+    top: 50%; left: 50%;
+    animation-delay: -12s;
+}
+
+@keyframes simFloat {
+    0%   { transform: translate(0, 0) scale(1); }
+    50%  { transform: translate(50px, 35px) scale(1.08); }
+    100% { transform: translate(-35px, 55px) scale(0.92); }
+}
+
+/* ─────────────────────────────────────
+   12. LIQUID CURSOR (WATER DROPLET)
+   ───────────────────────────────────── */
+.sim-water-droplet {
+    position: absolute;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.85) 0%, rgba(6, 182, 212, 0.4) 100%);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.35);
+    z-index: 98;
+}
+
+.sim-liquid-layer {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    pointer-events: none;
+    z-index: 99;
+    overflow: hidden;
+}
+
+/* ─────────────────────────────────────
+   13. PULSE / GLOW ANIMATIONS
+   ───────────────────────────────────── */
+@keyframes simPulseGreen {
+    0%   { box-shadow: 0 0 8px rgba(16, 185, 129, 0.3); }
+    100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.6); }
+}
+
+@keyframes simPulseCyan {
+    0%   { box-shadow: 0 0 8px rgba(6, 182, 212, 0.3); }
+    100% { box-shadow: 0 0 20px rgba(6, 182, 212, 0.6); }
+}
+
+.sim-pulse-green {
+    animation: simPulseGreen 2s infinite alternate;
+}
+
+.sim-pulse-cyan {
+    animation: simPulseCyan 2s infinite alternate;
+}
+
+/* ─────────────────────────────────────
+   14. SCAN / SPINNER ANIMATIONS
+   ───────────────────────────────────── */
+@keyframes simSpin {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.sim-spinner {
+    border: 3px solid rgba(6, 182, 212, 0.2);
+    border-top: 3px solid var(--accent-cyan);
+    border-radius: 50%;
+    width: 40px; height: 40px;
+    animation: simSpin 0.9s linear infinite;
+}
+
+/* ─────────────────────────────────────
+   15. LAYOUT HELPERS
+   ───────────────────────────────────── */
+.sim-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.sim-container-sm {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.sim-section {
+    position: relative;
+    z-index: 2;
+}
+
+/* Focus ring */
+.sim-focus:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.4);
+}
+
+/* ─────────────────────────────────────
+   16. RESPONSIVE HELPERS
+   ───────────────────────────────────── */
+@media (max-width: 768px) {
+    .sim-hide-mobile { display: none !important; }
+}
+
+@media (min-width: 769px) {
+    .sim-hide-desktop { display: none !important; }
+}
+
+/* ─────────────────────────────────────
+   17. TRANSITION OVERRIDES
+   ───────────────────────────────────── */
+a, button, input, select, textarea {
+    transition: all var(--duration-normal) var(--ease-smooth);
+}
+
+/* Prevent unwanted transitions on page load */
+.preload * {
+    transition: none !important;
+}
