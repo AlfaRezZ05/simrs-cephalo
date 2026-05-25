@@ -59,6 +59,15 @@ $error = getFlash('error');
             100% { transform: translate(50px, 40px) scale(1.08); }
         }
 
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(60px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideOutRight {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(60px); }
+        }
+
         .login-card {
             background: var(--glass-bg);
             backdrop-filter: blur(28px);
@@ -70,6 +79,11 @@ $error = getFlash('error');
             max-width: 480px;
             box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
             z-index: 10;
+            animation: slideInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .login-card.slide-out {
+            animation: slideOutRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         input[type="email"], input[type="password"], input[type="text"] {
@@ -195,6 +209,17 @@ $error = getFlash('error');
         valid = validateMatch('password', 'password_confirm', 'Konfirmasi Kata Sandi') && valid;
         if (!valid) e.preventDefault();
     });
+
+    // Page Transition Animation
+    const loginLink = document.querySelector('a[href*="login.php"]');
+    if (loginLink) {
+        loginLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            const href = this.href;
+            document.querySelector('.login-card').classList.add('slide-out');
+            setTimeout(() => { window.location.href = href; }, 350);
+        });
+    }
 </script>
 </body>
 </html>

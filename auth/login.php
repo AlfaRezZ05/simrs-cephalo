@@ -55,6 +55,15 @@ $oldEmail = getFlash('old_email');
             100% { transform: translate(-30px, 50px) scale(0.95); }
         }
 
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-60px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideOutLeft {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(-60px); }
+        }
+
         .login-card {
             background: var(--glass-bg);
             backdrop-filter: blur(28px);
@@ -66,6 +75,11 @@ $oldEmail = getFlash('old_email');
             max-width: 440px;
             box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
             z-index: 10;
+            animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .login-card.slide-out {
+            animation: slideOutLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         .icon-brand {
@@ -186,6 +200,17 @@ $oldEmail = getFlash('old_email');
         valid = validateRequired('password', 'Kata Sandi') && valid;
         if (!valid) e.preventDefault();
     });
+
+    // Page Transition Animation
+    const registerLink = document.querySelector('a[href*="register.php"]');
+    if (registerLink) {
+        registerLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            const href = this.href;
+            document.querySelector('.login-card').classList.add('slide-out');
+            setTimeout(() => { window.location.href = href; }, 350);
+        });
+    }
 </script>
 </body>
 </html>
