@@ -77,13 +77,15 @@ $oldEmail = getFlash('old_email');
             box-shadow: 0 10px 25px rgba(14, 165, 233, 0.35);
         }
 
-        input {
-            width: 100%; padding: 14px 18px; box-sizing: border-box;
+        input[type="email"], input[type="password"], input[type="text"] {
+            width: 100%; padding: 15px 20px !important; box-sizing: border-box;
             background: rgba(2, 6, 23, 0.65) !important; border: 1px solid var(--glass-border);
             border-radius: 14px; color: white !important; font-size: 0.95rem;
             transition: all 0.3s;
         }
-        input:focus { outline: none; border-color: var(--primary); background: rgba(2, 6, 23, 0.85) !important; box-shadow: 0 0 12px rgba(14,165,233,0.2); }
+        input[type="email"]:focus, input[type="password"]:focus, input[type="text"]:focus { 
+            outline: none; border-color: var(--primary); background: rgba(2, 6, 23, 0.85) !important; box-shadow: 0 0 12px rgba(14,165,233,0.2); 
+        }
 
         .btn-submit {
             background: #fff; color: #0f172a; width: 100%; border: none; padding: 16px;
