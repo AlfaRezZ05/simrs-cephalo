@@ -372,30 +372,30 @@ $labTimeline = [
     <form id="addPatientForm" method="POST" action="">
         <input type="hidden" name="action_type" value="add_patient">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            ' . component_input('nama_pasien', ['label' => 'Nama Lengkap', 'placeholder' => 'Masukkan nama...', 'required' => true, 'class' => 'dark:bg-slate-950']) . '
-            ' . component_input('nik', ['label' => 'NIK (16 Digit)', 'placeholder' => '3201...', 'required' => true, 'class' => 'dark:bg-slate-950']) . '
-            ' . component_input('tgl_lahir', ['label' => 'Tanggal Lahir', 'type' => 'date', 'required' => true, 'class' => 'dark:bg-slate-950']) . '
-            ' . component_input('no_telepon', ['label' => 'No. Telepon', 'placeholder' => '08xxxxxxxxxx', 'class' => 'dark:bg-slate-950']) . '
+            ' . component_input('nama_pasien', ['label' => 'Nama Lengkap', 'placeholder' => 'Masukkan nama...', 'required' => true]) . '
+            ' . component_input('nik', ['label' => 'NIK (16 Digit)', 'placeholder' => '3201...', 'required' => true]) . '
+            ' . component_input('tgl_lahir', ['label' => 'Tanggal Lahir', 'type' => 'date', 'required' => true]) . '
+            ' . component_input('no_telepon', ['label' => 'No. Telepon', 'placeholder' => '08xxxxxxxxxx']) . '
             
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 dark:text-slate-305 mb-1.5">Jenis Kelamin <span class="text-red-400">*</span></label>
-                <select name="jenis_kelamin" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all">
+                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Jenis Kelamin <span class="text-red-400">*</span></label>
+                <select name="jenis_kelamin" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl text-sm text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/20 dark:focus:bg-slate-900 transition-all">
                     <option value="L">Laki-laki</option>
                     <option value="P">Perempuan</option>
                 </select>
             </div>
             
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 dark:text-slate-305 mb-1.5">Kategori TB <span class="text-red-400">*</span></label>
-                <select name="kategori_tb" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all">
+                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Kategori TB <span class="text-red-400">*</span></label>
+                <select name="kategori_tb" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl text-sm text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/20 dark:focus:bg-slate-900 transition-all">
                     <option value="Paru">Paru</option>
                     <option value="Ekstra Paru">Ekstra Paru</option>
                 </select>
             </div>
             
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 dark:text-slate-305 mb-1.5">Fase Pengobatan <span class="text-red-400">*</span></label>
-                <select name="fase_pengobatan" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all">
+                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Fase Pengobatan <span class="text-red-400">*</span></label>
+                <select name="fase_pengobatan" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl text-sm text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/20 dark:focus:bg-slate-900 transition-all">
                     <option value="Belum Mulai">Belum Mulai</option>
                     <option value="Intensif">Intensif</option>
                     <option value="Lanjutan">Lanjutan</option>
@@ -404,15 +404,15 @@ $labTimeline = [
             </div>
 
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 dark:text-slate-350 mb-1.5">Status <span class="text-red-400">*</span></label>
-                <select name="status_pasien" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all">
+                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Status <span class="text-red-400">*</span></label>
+                <select name="status_pasien" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl text-sm text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/20 dark:focus:bg-slate-900 transition-all">
                     <option value="Aktif">Aktif</option>
                     <option value="Sembuh">Sembuh</option>
                     <option value="Putus Obat">Putus Obat</option>
                 </select>
             </div>
 
-            ' . component_input('alamat', ['label' => 'Alamat Lengkap', 'type' => 'textarea', 'placeholder' => 'Alamat lengkap...', 'class' => 'sm:col-span-2 dark:bg-slate-950']) . '
+            ' . component_input('alamat', ['label' => 'Alamat Lengkap', 'type' => 'textarea', 'placeholder' => 'Alamat lengkap...', 'class' => 'sm:col-span-2']) . '
         </div>
     </form>',
     'footer' => component_button('Batal', ['variant' => 'outline', 'onclick' => "closeModal('addPatientModal')"])
@@ -430,30 +430,30 @@ $labTimeline = [
         <input type="hidden" name="action_type" value="edit_patient">
         <input type="hidden" name="id" id="edit_id" value="">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            ' . component_input('nama_pasien', ['id' => 'edit_nama', 'label' => 'Nama Lengkap', 'required' => true, 'class' => 'dark:bg-slate-950']) . '
-            ' . component_input('nik', ['id' => 'edit_nik', 'label' => 'NIK (16 Digit)', 'required' => true, 'class' => 'dark:bg-slate-950']) . '
-            ' . component_input('tgl_lahir', ['id' => 'edit_tgl_lahir', 'label' => 'Tanggal Lahir', 'type' => 'date', 'required' => true, 'class' => 'dark:bg-slate-950']) . '
-            ' . component_input('no_telepon', ['id' => 'edit_no_telepon', 'label' => 'No. Telepon', 'class' => 'dark:bg-slate-950']) . '
+            ' . component_input('nama_pasien', ['id' => 'edit_nama', 'label' => 'Nama Lengkap', 'required' => true]) . '
+            ' . component_input('nik', ['id' => 'edit_nik', 'label' => 'NIK (16 Digit)', 'required' => true]) . '
+            ' . component_input('tgl_lahir', ['id' => 'edit_tgl_lahir', 'label' => 'Tanggal Lahir', 'type' => 'date', 'required' => true]) . '
+            ' . component_input('no_telepon', ['id' => 'edit_no_telepon', 'label' => 'No. Telepon']) . '
             
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 dark:text-slate-305 mb-1.5">Jenis Kelamin <span class="text-red-400">*</span></label>
-                <select name="jenis_kelamin" id="edit_jk" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all">
+                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Jenis Kelamin <span class="text-red-400">*</span></label>
+                <select name="jenis_kelamin" id="edit_jk" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl text-sm text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/20 dark:focus:bg-slate-900 transition-all">
                     <option value="L">Laki-laki</option>
                     <option value="P">Perempuan</option>
                 </select>
             </div>
             
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 dark:text-slate-305 mb-1.5">Kategori TB <span class="text-red-400">*</span></label>
-                <select name="kategori_tb" id="edit_kategori" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all">
+                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Kategori TB <span class="text-red-400">*</span></label>
+                <select name="kategori_tb" id="edit_kategori" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl text-sm text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/20 dark:focus:bg-slate-900 transition-all">
                     <option value="Paru">Paru</option>
                     <option value="Ekstra Paru">Ekstra Paru</option>
                 </select>
             </div>
             
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 dark:text-slate-305 mb-1.5">Fase Pengobatan <span class="text-red-400">*</span></label>
-                <select name="fase_pengobatan" id="edit_fase" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all">
+                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Fase Pengobatan <span class="text-red-400">*</span></label>
+                <select name="fase_pengobatan" id="edit_fase" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl text-sm text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/20 dark:focus:bg-slate-900 transition-all">
                     <option value="Belum Mulai">Belum Mulai</option>
                     <option value="Intensif">Intensif</option>
                     <option value="Lanjutan">Lanjutan</option>
@@ -462,15 +462,15 @@ $labTimeline = [
             </div>
 
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 dark:text-slate-350 mb-1.5">Status <span class="text-red-400">*</span></label>
-                <select name="status_pasien" id="edit_status" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all">
+                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Status <span class="text-red-400">*</span></label>
+                <select name="status_pasien" id="edit_status" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl text-sm text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/20 dark:focus:bg-slate-900 transition-all">
                     <option value="Aktif">Aktif</option>
                     <option value="Sembuh">Sembuh</option>
                     <option value="Putus Obat">Putus Obat</option>
                 </select>
             </div>
 
-            ' . component_input('alamat', ['id' => 'edit_alamat', 'label' => 'Alamat Lengkap', 'type' => 'textarea', 'class' => 'sm:col-span-2 dark:bg-slate-950']) . '
+            ' . component_input('alamat', ['id' => 'edit_alamat', 'label' => 'Alamat Lengkap', 'type' => 'textarea', 'class' => 'sm:col-span-2']) . '
         </div>
     </form>',
     'footer' => component_button('Batal', ['variant' => 'outline', 'onclick' => "closeModal('editPatientModal')"])

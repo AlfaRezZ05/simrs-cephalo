@@ -158,7 +158,7 @@ function component_input(string $name, array $options = []): string
     $html = '<div class="' . $class . '">';
 
     if ($label) {
-        $html .= '<label for="' . $id . '" class="block text-sm font-medium text-gray-700 mb-1.5">';
+        $html .= '<label for="' . $id . '" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">';
         $html .= htmlspecialchars($label);
         if ($required) {
             $html .= ' <span class="text-red-400">*</span>';
@@ -169,7 +169,7 @@ function component_input(string $name, array $options = []): string
     if ($type === 'textarea') {
         $html .= '<textarea id="' . $id . '" name="' . $name . '"';
         $html .= ' placeholder="' . htmlspecialchars($placeholder) . '"';
-        $html .= ' class="w-full px-4 py-2.5 bg-gray-50 border ' . $errorBorder . ' rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:bg-white transition-all resize-none"';
+        $html .= ' class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border ' . $errorBorder . ' dark:border-slate-800 rounded-xl text-sm text-gray-800 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:bg-white dark:focus:bg-slate-900 transition-all resize-none"';
         $html .= ' rows="4"';
         if ($required) $html .= ' required';
         if ($disabled) $html .= ' disabled';
@@ -178,7 +178,7 @@ function component_input(string $name, array $options = []): string
         $html .= '<input type="' . $type . '" id="' . $id . '" name="' . $name . '"';
         $html .= ' value="' . htmlspecialchars($value) . '"';
         $html .= ' placeholder="' . htmlspecialchars($placeholder) . '"';
-        $html .= ' class="w-full px-4 py-2.5 bg-gray-50 border ' . $errorBorder . ' rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:bg-white transition-all"';
+        $html .= ' class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border ' . $errorBorder . ' dark:border-slate-800 rounded-xl text-sm text-gray-800 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:bg-white dark:focus:bg-slate-900 transition-all"';
         if ($required) $html .= ' required';
         if ($disabled) $html .= ' disabled';
         $html .= '>';
