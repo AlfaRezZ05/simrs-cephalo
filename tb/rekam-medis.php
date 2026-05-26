@@ -479,18 +479,18 @@ $labTimeline = [
 
 <script>
 function openEditModal(patient) {
-    document.getElementById(\'edit_id\').value = patient.id || \'\';
-    document.getElementById(\'edit_nama\').value = patient.nama || \'\';
-    document.getElementById(\'edit_nik\').value = patient.nik || \'\';
-    document.getElementById(\'edit_tgl_lahir\').value = patient.tgl_lahir || \'\';
-    document.getElementById(\'edit_no_telepon\').value = patient.no_telp || \'\';
-    document.getElementById(\'edit_alamat\').value = patient.alamat || \'\';
+    document.getElementById('edit_id').value = patient.id || '';
+    document.getElementById('edit_nama').value = patient.nama || '';
+    document.getElementById('edit_nik').value = patient.nik || '';
+    document.getElementById('edit_tgl_lahir').value = patient.tgl_lahir || '';
+    document.getElementById('edit_no_telepon').value = patient.no_telp || '';
+    document.getElementById('edit_alamat').value = patient.alamat || '';
     
-    document.getElementById(\'edit_jk\').value = patient.jk || \'L\';
-    document.getElementById(\'edit_kategori\').value = patient.kategori || \'Paru\';
-    document.getElementById(\'edit_fase\').value = patient.fase || \'Belum Mulai\';
-    document.getElementById(\'edit_status\').value = patient.status || \'Aktif\';
+    document.getElementById('edit_jk').value = patient.jk || 'L';
+    document.getElementById('edit_kategori').value = patient.kategori || 'Paru';
+    document.getElementById('edit_fase').value = patient.fase || 'Belum Mulai';
+    document.getElementById('edit_status').value = patient.status || 'Aktif';
     
-    openModal(\'editPatientModal\');
+    openModal('editPatientModal');
 }
 </script>
