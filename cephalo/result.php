@@ -135,8 +135,8 @@ $pageTitle = 'Hasil Diagnosis — Cephalo AI';
         <!-- Left Card: Image & Overlay -->
         <div class="sim-card">
             <div class="font-bold mb-4 text-white text-sm border-b border-white/[0.06] pb-3 tracking-widest uppercase">Citra Rontgen Sefalogram Lateral</div>
-            <div class="rounded-xl overflow-hidden relative border border-white/[0.06]" style="background-color: var(--bg-surface);">
-                <img id="patientImg" src="uploads/<?= htmlspecialchars($data['foto_rontgen']) ?>" alt="Rontgen Pasien" class="w-full h-auto block" style="opacity: 0.85;">
+            <div class="rounded-xl overflow-hidden relative border border-white/[0.06] min-h-[400px] flex items-center justify-center bg-slate-900/50" style="background-color: var(--bg-surface);">
+                <img id="patientImg" src="uploads/<?= htmlspecialchars($data['foto_rontgen']) ?>" alt="Rontgen Pasien" class="w-full h-auto max-h-[70vh] object-contain block" style="opacity: 0.85;">
                 
                 <!-- HTML5 INTERACTIVE COORDINATE OVERLAY CANVAS -->
                 <canvas id="landmarkCanvas" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:10; pointer-events:none;"></canvas>
