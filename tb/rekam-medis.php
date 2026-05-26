@@ -14,6 +14,9 @@ $user = getCurrentUser();
 $pageTitle = 'Poli Paru — Rekam Medis';
 $activePage = 'rekam-medis';
 
+$error = getFlash('error');
+$success = getFlash('success');
+
 // Handle Add Patient Form POST Submission
 $db = getDBConnection();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_type'])) {
@@ -188,6 +191,17 @@ $labTimeline = [
         ]) ?>
     </div>
 
+    <?php if ($error): ?>
+        <div class="mb-5">
+            <?= component_alert($error, 'error', ['dismissible' => true]) ?>
+        </div>
+    <?php endif; ?>
+    <?php if ($success): ?>
+        <div class="mb-5">
+            <?= component_alert($success, 'success', ['dismissible' => true]) ?>
+        </div>
+    <?php endif; ?>
+
     <form method="GET" action="" class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm p-4 mb-5 flex flex-wrap items-center gap-3 w-full">
         <div class="flex-1 min-w-[200px]">
             <input type="text" name="search" value="<?= htmlspecialchars($_GET['search'] ?? '') ?>" placeholder="Cari nama / No. RM..." class="sim-input dark:bg-slate-950 !py-2.5 text-sm !h-[45px]">
@@ -269,12 +283,8 @@ $labTimeline = [
                             <div class="flex items-center gap-3">
                                 <button onclick="openModal('detailModal')" class="text-teal-600 dark:text-emerald-450 hover:underline text-xs font-medium">Detail</button>
                                 <?php if (!empty($p['id'])): ?>
-                                <button onclick='openEditModal(<?= json_encode($p) ?>)' class="text-amber-500 hover:underline text-xs font-medium">Edit</button>
-                                <form method="POST" action="" class="inline m-0" onsubmit="return confirm('Yakin ingin menghapus pasien ini?');">
-                                    <input type="hidden" name="action_type" value="delete_patient">
-                                    <input type="hidden" name="id" value="<?= $p['id'] ?>">
-                                    <button type="submit" class="text-red-500 hover:underline text-xs font-medium">Hapus</button>
-                                </form>
+                                <button type="button" onclick='openEditModal(<?= json_encode($p) ?>)' class="text-amber-500 hover:underline text-xs font-medium">Edit</button>
+                                <button type="button" onclick="openDeleteModal(<?= $p['id'] ?>)" class="text-red-500 hover:underline text-xs font-medium">Hapus</button>
                                 <?php endif; ?>
                             </div>
                         </td>
@@ -477,6 +487,20 @@ $labTimeline = [
         . ' ' . component_button('Simpan Perubahan', ['variant' => 'primary', 'class' => '!bg-amber-500 hover:!bg-amber-600', 'onclick' => "document.getElementById('editPatientForm').submit();"])
 ]) ?>
 
+<!-- Delete Confirmation Modal -->
+<?= component_modal('deleteConfirmModal', [
+    'title' => 'Konfirmasi Hapus',
+    'size' => 'sm',
+    'content' => '
+    <p class="text-sm text-gray-600 dark:text-slate-350">Apakah Anda yakin ingin menghapus data pasien ini? Tindakan ini tidak dapat dibatalkan.</p>
+    <form id="deletePatientForm" method="POST" action="rekam-medis.php">
+        <input type="hidden" name="action_type" value="delete_patient">
+        <input type="hidden" name="id" id="delete_id" value="">
+    </form>',
+    'footer' => component_button('Batal', ['variant' => 'outline', 'onclick' => "closeModal('deleteConfirmModal')"])
+        . ' ' . component_button('Hapus Pasien', ['variant' => 'destructive', 'class' => '!bg-red-600 hover:!bg-red-700', 'onclick' => "document.getElementById('deletePatientForm').submit();"])
+]) ?>
+
 <script>
 function openEditModal(patient) {
     document.getElementById('edit_id').value = patient.id || '';
@@ -492,5 +516,10 @@ function openEditModal(patient) {
     document.getElementById('edit_status').value = patient.status || 'Aktif';
     
     openModal('editPatientModal');
+}
+
+function openDeleteModal(id) {
+    document.getElementById('delete_id').value = id;
+    openModal('deleteConfirmModal');
 }
 </script>
