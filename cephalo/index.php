@@ -126,6 +126,28 @@ $pageTitle = 'Poli Gigi — Cephalo AI';
         font-family: inherit;
     }
     .ceph-btn-submit:hover { background: #e0f2fe; transform: translateY(-2px); box-shadow: 0 10px 25px rgba(255, 255, 255, 0.12); }
+
+    /* Mobile and Tablet Media Queries */
+    @media (max-width: 1024px) {
+        .ceph-corner {
+            display: none !important;
+        }
+        .ceph-hero {
+            height: 60vh;
+            padding: 0 20px;
+        }
+        .ceph-title {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+        }
+        .ceph-scroll {
+            bottom: 20px;
+            font-size: 0.65rem;
+        }
+        .sim-liquid-layer, #blob-container-cephalo {
+            display: none !important;
+        }
+    }
 </style>
 
 <!-- Floating Background Shapes -->
@@ -303,8 +325,9 @@ $pageTitle = 'Poli Gigi — Cephalo AI';
 
     // ── Script Liquid Cursor Effect ──
     const containerBlob = document.getElementById('blob-container-cephalo');
+    const isMobileOrTablet = window.matchMedia("(max-width: 1024px)").matches || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     
-    if(containerBlob) {
+    if(containerBlob && !isMobileOrTablet) {
         const blobstores = [];
         const BLOB_COUNT = 15;
         for(let i=0; i<BLOB_COUNT; i++) {

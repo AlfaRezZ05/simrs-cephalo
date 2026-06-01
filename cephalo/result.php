@@ -84,6 +84,16 @@ $pageTitle = 'Hasil Diagnosis — Cephalo AI';
 
     @media (max-width: 900px) {
         .ceph-result-grid { grid-template-columns: 1fr !important; }
+        .ceph-angle-grid { grid-template-columns: 1fr !important; gap: 8px; }
+        .ceph-angle-box { padding: 12px; }
+        .ceph-angle-value { font-size: 1.4rem; }
+    }
+
+    @media (max-width: 1024px) {
+        /* Hide liquid cursor blobs on touch devices to improve rendering & ease interaction */
+        .sim-liquid-layer, #blob-container-cephalo-res {
+            display: none !important;
+        }
     }
 </style>
 
@@ -387,8 +397,9 @@ $pageTitle = 'Hasil Diagnosis — Cephalo AI';
 
     // ── Script Liquid Cursor Effect ──
     const containerBlob = document.getElementById('blob-container-cephalo-res');
+    const isMobileOrTablet = window.matchMedia("(max-width: 1024px)").matches || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     
-    if(containerBlob) {
+    if(containerBlob && !isMobileOrTablet) {
         const blobstores = [];
         const BLOB_COUNT = 15;
         for(let i=0; i<BLOB_COUNT; i++) {
