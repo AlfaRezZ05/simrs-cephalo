@@ -4,6 +4,11 @@
  * Centralized session handling with secure defaults.
  */
 
+// Start output buffering early to prevent "headers already sent" errors on Vercel
+if (!ob_get_level()) {
+    ob_start();
+}
+
 // ── Secure Signed Cookie Session Storage (Fixes Vercel Serverless Stateless Session Loop) ──
 function setSecureCookie(string $name, array $data): void {
     $json = json_encode($data);
