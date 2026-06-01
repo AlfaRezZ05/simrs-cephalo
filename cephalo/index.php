@@ -139,27 +139,57 @@ $pageTitle = 'Poli Gigi — Cephalo AI';
         }
         .ceph-hero {
             height: auto !important;
-            min-height: 250px !important;
-            padding: 80px 20px 30px 20px !important;
+            min-height: 160px !important;
+            padding: 40px 20px 10px 20px !important;
         }
         .ceph-title {
-            font-size: 2.8rem !important;
-            margin-bottom: 10px !important;
+            font-size: 2.5rem !important;
+            margin-bottom: 5px !important;
         }
         .ceph-scroll {
-            position: relative !important;
-            bottom: auto !important;
-            left: auto !important;
-            transform: none !important;
-            margin-top: 20px !important;
-            animation: none !important;
-            display: inline-flex !important;
+            display: none !important; /* Hide bouncing down scroll helper on mobile to save valuable vertical screen space */
         }
         .sim-liquid-layer, #blob-container-cephalo {
             display: none !important;
         }
         .ceph-card {
-            padding: 24px 16px !important;
+            padding: 24px 20px !important;
+            border-radius: var(--radius-lg) !important;
+            margin-bottom: 24px !important;
+        }
+        /* Tighten section padding */
+        #upload-section {
+            padding-top: 20px !important;
+            padding-bottom: 40px !important;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .ceph-hero {
+            min-height: 110px !important;
+            padding: 30px 16px 0px 16px !important;
+        }
+        .ceph-title {
+            font-size: 2.15rem !important;
+        }
+        .ceph-card {
+            padding: 20px 16px !important;
+        }
+        .sim-input, .sim-select {
+            padding: 12px 14px !important;
+            font-size: 0.9rem !important;
+        }
+        .ceph-upload-area {
+            padding: 30px 16px !important;
+        }
+        .ceph-upload-area svg {
+            width: 36px !important;
+            height: 36px !important;
+        }
+        .ceph-btn-submit {
+            padding: 14px 18px !important;
+            font-size: 0.95rem !important;
+            margin-top: 15px !important;
         }
     }
 </style>

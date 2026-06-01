@@ -95,6 +95,15 @@ $pageTitle = 'Hasil Diagnosis — Cephalo AI';
             display: none !important;
         }
     }
+
+    .ceph-res-container {
+        padding: 40px 20px 80px 20px;
+    }
+    @media (max-width: 640px) {
+        .ceph-res-container {
+            padding: 16px 12px 40px 12px !important;
+        }
+    }
 </style>
 
 <!-- Floating Background Shapes -->
@@ -116,7 +125,7 @@ $pageTitle = 'Hasil Diagnosis — Cephalo AI';
 </svg>
 <div class="sim-liquid-layer" style="filter: url(#goo-cephalo-res);" id="blob-container-cephalo-res"></div>
 
-<div class="sim-section sim-container-sm" style="padding: 40px 20px 80px 20px;">
+<div class="sim-section sim-container-sm ceph-res-container">
     
     <a href="index.php" class="inline-flex items-center gap-2 text-slate-500 hover:text-white text-sm font-medium mb-6 transition-colors">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
