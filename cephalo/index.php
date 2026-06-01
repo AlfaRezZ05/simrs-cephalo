@@ -127,25 +127,39 @@ $pageTitle = 'Poli Gigi — Cephalo AI';
     }
     .ceph-btn-submit:hover { background: #e0f2fe; transform: translateY(-2px); box-shadow: 0 10px 25px rgba(255, 255, 255, 0.12); }
 
+    /* Make card padding responsive on mobile/tablet */
+    .ceph-card {
+        padding: 40px;
+    }
+
     /* Mobile and Tablet Media Queries */
     @media (max-width: 1024px) {
         .ceph-corner {
             display: none !important;
         }
         .ceph-hero {
-            height: 60vh;
-            padding: 0 20px;
+            height: auto !important;
+            min-height: 250px !important;
+            padding: 80px 20px 30px 20px !important;
         }
         .ceph-title {
-            font-size: 3.5rem;
-            margin-bottom: 20px;
+            font-size: 2.8rem !important;
+            margin-bottom: 10px !important;
         }
         .ceph-scroll {
-            bottom: 20px;
-            font-size: 0.65rem;
+            position: relative !important;
+            bottom: auto !important;
+            left: auto !important;
+            transform: none !important;
+            margin-top: 20px !important;
+            animation: none !important;
+            display: inline-flex !important;
         }
         .sim-liquid-layer, #blob-container-cephalo {
             display: none !important;
+        }
+        .ceph-card {
+            padding: 24px 16px !important;
         }
     }
 </style>
@@ -192,7 +206,7 @@ $pageTitle = 'Poli Gigi — Cephalo AI';
 <section id="upload-section" class="sim-section min-h-screen py-16 px-5 flex flex-col items-center justify-center border-t border-white/[0.04]">
     <div class="sim-container-sm">
         
-        <div class="sim-card" style="padding: 40px;">
+        <div class="sim-card ceph-card">
             <h2 class="text-2xl font-bold text-white mb-2 tracking-tight">Analisis Sefalometri Cerdas</h2>
             <p class="text-slate-400 text-base mb-8 leading-relaxed">Integrasi Cloud AI untuk ekstraksi parameter rahang otomatis. Lengkapi biodata pasien di bawah ini.</p>
             
@@ -240,7 +254,7 @@ $pageTitle = 'Poli Gigi — Cephalo AI';
             </form>
         </div>
 
-        <div class="sim-card" style="padding: 40px;">
+        <div class="sim-card ceph-card">
             <h2 class="text-xl font-bold text-white mb-2 tracking-tight">Arsip Pemindaian Sefalometri</h2>
             <p class="text-slate-400 text-sm mb-5">Daftar rekam medis ortodonti yang telah dipindai.</p>
             

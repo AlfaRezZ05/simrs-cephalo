@@ -1,8 +1,18 @@
 {
+  "version": 2,
   "builds": [
     {
       "src": "**/*.php",
-      "use": "vercel-php@0.6.2"
+      "use": "vercel-php"
     }
+  ],
+  "routes": [
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "/cephalo/uploads/(.*)", "dest": "/cephalo/uploads/$1" },
+    { "src": "/cephalo/?$", "dest": "/cephalo/index.php" },
+    { "src": "/tb/?$", "dest": "/tb/rekam-medis.php" },
+    { "src": "/auth/?$", "dest": "/auth/login.php" },
+    { "src": "/$", "dest": "/index.php" },
+    { "src": "/(.*)", "dest": "/$1" }
   ]
 }
