@@ -137,13 +137,18 @@ $pageTitle = 'Poli Gigi — Cephalo AI';
         .ceph-corner {
             display: none !important;
         }
+    /* Mobile and Tablet Media Queries */
+    @media (max-width: 1024px) {
+        .ceph-corner {
+            display: none !important;
+        }
         .ceph-hero {
             height: auto !important;
-            min-height: 160px !important;
-            padding: 40px 20px 10px 20px !important;
+            min-height: 120px !important;
+            padding: 30px 16px 5px 16px !important;
         }
         .ceph-title {
-            font-size: 2.5rem !important;
+            font-size: 2.2rem !important;
             margin-bottom: 5px !important;
         }
         .ceph-scroll {
@@ -153,43 +158,76 @@ $pageTitle = 'Poli Gigi — Cephalo AI';
             display: none !important;
         }
         .ceph-card {
-            padding: 24px 20px !important;
-            border-radius: var(--radius-lg) !important;
-            margin-bottom: 24px !important;
+            padding: 20px 16px !important;
+            border-radius: var(--radius-xl) !important;
+            margin-bottom: 20px !important;
         }
-        /* Tighten section padding */
+        /* Tighten section padding & eliminate nested padding */
         #upload-section {
-            padding-top: 20px !important;
-            padding-bottom: 40px !important;
+            padding-top: 10px !important;
+            padding-bottom: 30px !important;
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+        }
+        .sim-container-sm {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            width: 100% !important;
         }
     }
 
     @media (max-width: 640px) {
         .ceph-hero {
-            min-height: 110px !important;
-            padding: 30px 16px 0px 16px !important;
+            min-height: 90px !important;
+            padding: 24px 12px 0px 12px !important;
         }
         .ceph-title {
-            font-size: 2.15rem !important;
+            font-size: 1.85rem !important;
         }
         .ceph-card {
-            padding: 20px 16px !important;
+            padding: 16px 12px !important;
+            border-radius: var(--radius-lg) !important;
         }
         .sim-input, .sim-select {
-            padding: 12px 14px !important;
-            font-size: 0.9rem !important;
+            padding: 11px 12px !important;
+            font-size: 0.875rem !important;
+        }
+        .sim-label {
+            font-size: 0.75rem !important;
+            margin-bottom: 6px !important;
         }
         .ceph-upload-area {
-            padding: 30px 16px !important;
+            padding: 24px 12px !important;
         }
         .ceph-upload-area svg {
-            width: 36px !important;
-            height: 36px !important;
+            width: 32px !important;
+            height: 32px !important;
         }
         .ceph-btn-submit {
-            padding: 14px 18px !important;
-            font-size: 0.95rem !important;
-            margin-top: 15px !important;
+            padding: 12px 16px !important;
+            font-size: 0.9rem !important;
+            margin-top: 12px !important;
+        }
+        /* Make history table look flawless on mobile screens without stretching */
+        .sim-table th, .sim-table td {
+            padding: 10px 8px !important;
+            font-size: 0.775rem !important;
+        }
+        .sim-table td strong {
+            font-size: 0.8rem !important;
+        }
+        .sim-badge {
+            padding: 3px 8px !important;
+            font-size: 0.65rem !important;
+        }
+    }
+
+    @media (max-width: 380px) {
+        .ceph-title {
+            font-size: 1.6rem !important;
+        }
+        .ceph-card {
+            padding: 12px 10px !important;
         }
     }
 </style>
