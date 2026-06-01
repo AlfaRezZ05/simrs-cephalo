@@ -52,6 +52,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $check_stmt->execute([$nik]);
             $existing_patient = $check_stmt->fetch();
 
+            // Deteksi driver untuk penanganan ID Insert yang tepat
+            $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
             if ($existing_patient) {
                 $id_pasien_baru = $existing_patient['id_pasien'];
                 // Update biodata pasien jika ada perubahan
@@ -59,19 +62,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $update_stmt = $pdo->prepare($update_sql);
                 $update_stmt->execute([$nama, $usia, $jenis_kelamin, $id_pasien_baru]);
             } else {
-                $sql_pasien = "INSERT INTO modul_11_pasien (nama_pasien, nik, usia, jenis_kelamin) VALUES (?, ?, ?, ?)";
-                $stmt_pasien = $pdo->prepare($sql_pasien);
-                $stmt_pasien->execute([$nama, $nik, $usia, $jenis_kelamin]);
-                $id_pasien_baru = $pdo->lastInsertId();
+                if ($driver === 'pgsql') {
+                    $sql_pasien = "INSERT INTO modul_11_pasien (nama_pasien, nik, usia, jenis_kelamin) VALUES (?, ?, ?, ?) RETURNING id_pasien";
+                    $stmt_pasien = $pdo->prepare($sql_pasien);
+                    $stmt_pasien->execute([$nama, $nik, $usia, $jenis_kelamin]);
+                    $id_pasien_baru = $stmt_pasien->fetchColumn();
+                } else {
+                    $sql_pasien = "INSERT INTO modul_11_pasien (nama_pasien, nik, usia, jenis_kelamin) VALUES (?, ?, ?, ?)";
+                    $stmt_pasien = $pdo->prepare($sql_pasien);
+                    $stmt_pasien->execute([$nama, $nik, $usia, $jenis_kelamin]);
+                    $id_pasien_baru = $pdo->lastInsertId();
+                }
             }
 
             // 5. Simpan nama foto rontgen ke tabel modul_11_sefalometri
-            $sql_foto = "INSERT INTO modul_11_sefalometri (id_pasien, foto_rontgen) VALUES (?, ?)";
-            $stmt_foto = $pdo->prepare($sql_foto);
-            $stmt_foto->execute([$id_pasien_baru, $nama_file_baru]);
-
-            // Ambil ID analisis untuk dilempar ke halaman result
-            $id_analisis = $pdo->lastInsertId();
+            if ($driver === 'pgsql') {
+                $sql_foto = "INSERT INTO modul_11_sefalometri (id_pasien, foto_rontgen) VALUES (?, ?) RETURNING id_analisis";
+                $stmt_foto = $pdo->prepare($sql_foto);
+                $stmt_foto->execute([$id_pasien_baru, $nama_file_baru]);
+                $id_analisis = $stmt_foto->fetchColumn();
+            } else {
+                $sql_foto = "INSERT INTO modul_11_sefalometri (id_pasien, foto_rontgen) VALUES (?, ?)";
+                $stmt_foto = $pdo->prepare($sql_foto);
+                $stmt_foto->execute([$id_pasien_baru, $nama_file_baru]);
+                $id_analisis = $pdo->lastInsertId();
+            }
 
             // 6. Alihkan otomatis ke halaman UI Hasil Diagnosis
             header("Location: result.php?id=" . $id_analisis);

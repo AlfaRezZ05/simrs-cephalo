@@ -17,25 +17,50 @@ $userInitials = getUserInitials();
 // ── Database Initialization ──
 $pdo = getDBConnection();
 
-// Create patient table if not exists
-$pdo->exec("CREATE TABLE IF NOT EXISTS modul_11_pasien (
-    id_pasien INT AUTO_INCREMENT PRIMARY KEY,
-    nama_pasien VARCHAR(255) NOT NULL,
-    nik VARCHAR(50) NOT NULL UNIQUE,
-    usia INT NOT NULL,
-    jenis_kelamin VARCHAR(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+// Deteksi driver database yang sedang digunakan
+$driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
 
-// Create cephalometry table if not exists
-$pdo->exec("CREATE TABLE IF NOT EXISTS modul_11_sefalometri (
-    id_analisis INT AUTO_INCREMENT PRIMARY KEY,
-    id_pasien INT NOT NULL,
-    foto_rontgen VARCHAR(255) NOT NULL,
-    data_landmark LONGTEXT DEFAULT NULL,
-    hasil_diagnosis VARCHAR(255) DEFAULT NULL,
-    waktu_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_pasien) REFERENCES modul_11_pasien(id_pasien) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+if ($driver === 'mysql') {
+    // Create patient table if not exists (MySQL)
+    $pdo->exec("CREATE TABLE IF NOT EXISTS modul_11_pasien (
+        id_pasien INT AUTO_INCREMENT PRIMARY KEY,
+        nama_pasien VARCHAR(255) NOT NULL,
+        nik VARCHAR(50) NOT NULL UNIQUE,
+        usia INT NOT NULL,
+        jenis_kelamin VARCHAR(20) NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+    // Create cephalometry table if not exists (MySQL)
+    $pdo->exec("CREATE TABLE IF NOT EXISTS modul_11_sefalometri (
+        id_analisis INT AUTO_INCREMENT PRIMARY KEY,
+        id_pasien INT NOT NULL,
+        foto_rontgen VARCHAR(255) NOT NULL,
+        data_landmark LONGTEXT DEFAULT NULL,
+        hasil_diagnosis VARCHAR(255) DEFAULT NULL,
+        waktu_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (id_pasien) REFERENCES modul_11_pasien(id_pasien) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+} else {
+    // Create patient table if not exists (PostgreSQL)
+    $pdo->exec("CREATE TABLE IF NOT EXISTS modul_11_pasien (
+        id_pasien SERIAL PRIMARY KEY,
+        nama_pasien VARCHAR(255) NOT NULL,
+        nik VARCHAR(50) NOT NULL UNIQUE,
+        usia INT NOT NULL,
+        jenis_kelamin VARCHAR(20) NOT NULL
+    );");
+
+    // Create cephalometry table if not exists (PostgreSQL)
+    $pdo->exec("CREATE TABLE IF NOT EXISTS modul_11_sefalometri (
+        id_analisis SERIAL PRIMARY KEY,
+        id_pasien INT NOT NULL,
+        foto_rontgen VARCHAR(255) NOT NULL,
+        data_landmark TEXT DEFAULT NULL,
+        hasil_diagnosis VARCHAR(255) DEFAULT NULL,
+        waktu_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (id_pasien) REFERENCES modul_11_pasien(id_pasien) ON DELETE CASCADE
+    );");
+}
 
 // Fetch database records
 $sql = "SELECT p.nama_pasien, p.nik, p.usia, p.jenis_kelamin, s.id_analisis, s.foto_rontgen, s.waktu_upload, s.data_landmark 
