@@ -50,7 +50,7 @@ if (!isset($pageTitle)) {
     <!-- Unified Global CSS Design System -->
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/global.css">
 </head>
-<body class="preload">
+<body class="preload bg-[#020617] text-slate-50 min-h-screen">
 
 <script>
     // Remove preload class after page loads to enable transitions
