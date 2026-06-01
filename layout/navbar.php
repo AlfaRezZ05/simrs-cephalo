@@ -39,7 +39,7 @@ $isCephalo = strpos($currentPath, '/cephalo/') !== false;
                        : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent' ?>">
                     Dashboard Utama
                 </a>
-                <a href="<?= BASE_URL ?>/tb/dashboard.php" 
+                <a href="<?= BASE_URL ?>/tb/index.php" 
                    class="nav-link px-3.5 py-2 text-xs font-semibold rounded-lg transition-all duration-200 <?= $isTB 
                        ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' 
                        : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent' ?>">
@@ -123,7 +123,7 @@ $isCephalo = strpos($currentPath, '/cephalo/') !== false;
             <a href="<?= BASE_URL ?>/index.php" class="block px-3 py-2.5 text-sm font-medium rounded-lg transition-colors <?= $isPortal ? 'text-cyan-400 bg-cyan-500/10' : 'text-slate-400 hover:text-white hover:bg-white/5' ?>">
                 Dashboard Utama
             </a>
-            <a href="<?= BASE_URL ?>/tb/dashboard.php" class="block px-3 py-2.5 text-sm font-medium rounded-lg transition-colors <?= $isTB ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-400 hover:text-white hover:bg-white/5' ?>">
+            <a href="<?= BASE_URL ?>/tb/index.php" class="block px-3 py-2.5 text-sm font-medium rounded-lg transition-colors <?= $isTB ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-400 hover:text-white hover:bg-white/5' ?>">
                 Poli Paru
             </a>
             <a href="<?= BASE_URL ?>/cephalo/index.php" class="block px-3 py-2.5 text-sm font-medium rounded-lg transition-colors <?= $isCephalo ? 'text-sky-400 bg-sky-500/10' : 'text-slate-400 hover:text-white hover:bg-white/5' ?>">
