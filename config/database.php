@@ -4,10 +4,12 @@
  * Project: MedWeb SIMRS-Cephalo
  */
 
-if (getenv('VERCEL') == "1") {
-    define('BASE_URL', '');
+$isLocalhost = in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost', '127.0.0.1', '::1']);
+
+if ($isLocalhost) {
+    define('BASE_URL', '/simrs-cephalo'); // Mode XAMPP Lokal
 } else {
-    define('BASE_URL', '/simrs-cephalo');
+    define('BASE_URL', ''); // Mode Vercel / Cloud (Root)
 }
 
 // Simple helper to load .env file if it exists (useful for local development)
