@@ -65,5 +65,40 @@ Untuk bisa menguji unggah foto Rontgen Gigi pada fitur Cephalo AI, *backend* Pyt
 - `cephalo/` - Modul Poliklinik Gigi dan Direktori Upload Rontgen.
 - `cephalo/ai_engine/` - Modul *backend* Python untuk *machine learning* dan AI inference.
 
+## 🌐 Panduan Publikasi ke Internet & Migrasi Supabase
+
+Aplikasi SIMRS-Cephalo kini telah ditingkatkan agar mendukung arsitektur *cloud-ready* dengan integrasi **Supabase (PostgreSQL)** untuk *database production* dan siap di-deploy ke hosting publik (seperti Render, Railway, atau Shared Hosting cPanel).
+
+### 1. Migrasi Database ke Supabase
+1. Buat proyek baru di [Supabase](https://supabase.com).
+2. Salin kredensial database dari menu **Settings -> Database** di dashboard Supabase.
+3. Buat file `.env` di direktori root proyek (salin dari `.env.example`):
+   ```bash
+   cp .env.example .env
+   ```
+4. Ubah isi `.env` sesuai kredensial database Supabase Anda:
+   ```env
+   DB_CONNECTION=pgsql
+   DB_HOST=aws-0-ap-southeast-1.pooler.supabase.com
+   DB_PORT=5432
+   DB_DATABASE=postgres
+   DB_USERNAME=postgres
+   DB_PASSWORD=password-supabase-anda
+   ```
+5. Saat pertama kali diakses, sistem *Self-Healing* SIMRS akan otomatis mendeteksi database PostgreSQL Supabase Anda dan membuat seluruh tabel yang diperlukan secara instan!
+
+### 2. Panduan Deploy ke Vercel (100% Gratis & Serverless)
+Aplikasi ini sudah dilengkapi dengan file `vercel.json` sehingga siap untuk langsung dijalankan di Vercel menggunakan runtime `vercel-php`.
+
+**Langkah Deploy via Vercel Dashboard:**
+1. Push kode Anda ke repository **GitHub** pribadi atau publik.
+2. Masuk ke [Vercel.com](https://vercel.com) dan login dengan akun GitHub Anda.
+3. Klik **Add New -> Project**, lalu pilih repository SIMRS-Cephalo Anda.
+4. Di bagian konfigurasi **Environment Variables**, masukkan seluruh variabel dari file `.env` Anda (seperti `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`).
+5. Klik **Deploy**, dan dalam beberapa detik aplikasi Anda akan langsung *online*!
+
+> **Catatan Serverless:** Karena Vercel menggunakan sistem file *ephemeral* (sementara), file seperti unggahan Rontgen mungkin tidak akan tersimpan permanen antar sesi, namun seluruh fitur database rekam medis akan berjalan sempurna.
+
 ---
 Dikembangkan dengan ❤️ sebagai portal diagnostik cerdas generasi selanjutnya.
+

@@ -1,0 +1,7 @@
+# Kredensial dan Rahasia (Sangat Penting!)
+.env
+db_pass.txt
+
+# File Sistem (Opsional)
+.DS_Store
+Thumbs.db

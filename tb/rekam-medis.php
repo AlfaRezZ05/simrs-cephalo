@@ -95,7 +95,7 @@ try {
     $fase_filter = isset($_GET['fase']) && $_GET['fase'] !== 'Semua Fase' ? $_GET['fase'] : '%';
     $status_filter = isset($_GET['status']) && $_GET['status'] !== 'Semua Status' ? $_GET['status'] : '%';
 
-    $sql = "SELECT * FROM tb_patients WHERE (nama LIKE :search OR no_rm LIKE :search OR nik LIKE :search) AND fase_pengobatan LIKE :fase AND status LIKE :status ORDER BY id DESC";
+    $sql = "SELECT * FROM tb_patients WHERE (LOWER(nama) LIKE LOWER(:search) OR LOWER(no_rm) LIKE LOWER(:search) OR LOWER(nik) LIKE LOWER(:search)) AND fase_pengobatan LIKE :fase AND status LIKE :status ORDER BY id DESC";
     $stmt = $db->prepare($sql);
     $stmt->execute([
         'search' => $search,
