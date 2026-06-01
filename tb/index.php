@@ -13,297 +13,145 @@ startSession();
 $user = getCurrentUser();
 $pageTitle = 'Poli Paru — Sistem Informasi Tuberkulosis';
 ?>
-<!DOCTYPE html>
-<html lang="id">
+<?php require_once __DIR__ . '/../layout/header.php'; ?>
+<?php require_once __DIR__ . '/../layout/navbar.php'; ?>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $pageTitle ?></title>
-    <meta name="description" content="Platform SIMRS-TB terintegrasi dengan AI Deep Learning untuk skrining batuk, manajemen pengobatan, dan sinkronisasi SITB Kemenkes.">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<style>
+    /* Custom page-specific styling for SIMRS Poli Paru Landing Page */
+    /* Vanta background canvas container */
+    #vanta-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+    }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            overflow-x: hidden;
-        }
+    /* Glassmorphism custom components */
+    .glass {
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
 
-        /* Vanta container */
+    .glass-strong {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    /* CSS Animations for smooth loading flows */
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes slideLeft {
+        from { opacity: 0; transform: translateX(60px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes slideRight {
+        from { opacity: 0; transform: translateX(-60px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 20px rgba(20, 184, 166, 0.3); }
+        50% { box-shadow: 0 0 40px rgba(20, 184, 166, 0.6); }
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    @keyframes count-up {
+        from { opacity: 0; transform: scale(0.5); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+
+    .animate-fade-up { animation: fadeUp 0.8s ease-out forwards; }
+    .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
+    .animate-slide-left { animation: slideLeft 0.8s ease-out forwards; }
+    .animate-slide-right { animation: slideRight 0.8s ease-out forwards; }
+    .animate-float { animation: float 3s ease-in-out infinite; }
+    .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+    .animate-count { animation: count-up 0.6s ease-out forwards; }
+
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+    .delay-400 { animation-delay: 0.4s; }
+    .delay-500 { animation-delay: 0.5s; }
+    .delay-600 { animation-delay: 0.6s; }
+    .delay-700 { animation-delay: 0.7s; }
+    .delay-800 { animation-delay: 0.8s; }
+
+    .start-hidden { opacity: 0; }
+
+    /* Scroll indicators */
+    .scroll-indicator {
+        animation: float 2s ease-in-out infinite;
+    }
+
+    /* Custom hover transformations for feature lists */
+    .feature-card:hover .feature-icon {
+        transform: scale(1.15) rotate(5deg);
+        box-shadow: 0 0 30px rgba(20, 184, 166, 0.4);
+    }
+    .feature-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(20, 184, 166, 0.3);
+    }
+
+    /* Linear workflow line styling */
+    .workflow-line {
+        background: linear-gradient(to bottom, rgba(20, 184, 166, 0.5), rgba(52, 211, 153, 0.2));
+    }
+
+    /* Stats shimmer utility */
+    .stat-shimmer {
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+        background-size: 200% 100%;
+        animation: shimmer 3s infinite;
+    }
+
+    /* Hide Vanta background and show floating blobs on mobile/touch screens to ensure smooth rendering */
+    @media (max-width: 768px) {
         #vanta-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
+            display: none !important;
         }
-
-        /* Glass card */
-        .glass {
-            background: rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .sim-bg-shapes {
+            display: block !important;
         }
-
-        .glass-strong {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+        body {
+            background-color: #020617 !important;
         }
+    }
+</style>
 
-        /* Animations */
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(40px);
-            }
+<!-- Vanta.js Background -->
+<div id="vanta-bg"></div>
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+<!-- Mobile Shapes Background (Fallback for touch screen devices) -->
+<div class="sim-bg-shapes">
+    <div class="sim-shape sim-shape-1"></div>
+    <div class="sim-shape sim-shape-2"></div>
+    <div class="sim-shape sim-shape-3"></div>
+</div>
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
+<!-- Content Overlay -->
+<div class="relative z-10">
 
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideLeft {
-            from {
-                opacity: 0;
-                transform: translateX(60px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes slideRight {
-            from {
-                opacity: 0;
-                transform: translateX(-60px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes pulse-glow {
-
-            0%,
-            100% {
-                box-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
-            }
-
-            50% {
-                box-shadow: 0 0 40px rgba(20, 184, 166, 0.6);
-            }
-        }
-
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-10px);
-            }
-        }
-
-        @keyframes count-up {
-            from {
-                opacity: 0;
-                transform: scale(0.5);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        @keyframes shimmer {
-            0% {
-                background-position: -200% 0;
-            }
-
-            100% {
-                background-position: 200% 0;
-            }
-        }
-
-        .animate-fade-up {
-            animation: fadeUp 0.8s ease-out forwards;
-        }
-
-        .animate-fade-in {
-            animation: fadeIn 0.6s ease-out forwards;
-        }
-
-        .animate-slide-left {
-            animation: slideLeft 0.8s ease-out forwards;
-        }
-
-        .animate-slide-right {
-            animation: slideRight 0.8s ease-out forwards;
-        }
-
-        .animate-float {
-            animation: float 3s ease-in-out infinite;
-        }
-
-        .animate-pulse-glow {
-            animation: pulse-glow 2s ease-in-out infinite;
-        }
-
-        .animate-count {
-            animation: count-up 0.6s ease-out forwards;
-        }
-
-        .delay-100 {
-            animation-delay: 0.1s;
-        }
-
-        .delay-200 {
-            animation-delay: 0.2s;
-        }
-
-        .delay-300 {
-            animation-delay: 0.3s;
-        }
-
-        .delay-400 {
-            animation-delay: 0.4s;
-        }
-
-        .delay-500 {
-            animation-delay: 0.5s;
-        }
-
-        .delay-600 {
-            animation-delay: 0.6s;
-        }
-
-        .delay-700 {
-            animation-delay: 0.7s;
-        }
-
-        .delay-800 {
-            animation-delay: 0.8s;
-        }
-
-        .start-hidden {
-            opacity: 0;
-        }
-
-        /* Scroll indicator */
-        .scroll-indicator {
-            animation: float 2s ease-in-out infinite;
-        }
-
-        /* Feature icon hover */
-        .feature-card:hover .feature-icon {
-            transform: scale(1.15) rotate(5deg);
-            box-shadow: 0 0 30px rgba(20, 184, 166, 0.4);
-        }
-
-        .feature-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(20, 184, 166, 0.3);
-        }
-
-        /* Workflow step connector */
-        .workflow-line {
-            background: linear-gradient(to bottom, rgba(20, 184, 166, 0.5), rgba(52, 211, 153, 0.2));
-        }
-
-        /* Stats shimmer */
-        .stat-shimmer {
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-            background-size: 200% 100%;
-            animation: shimmer 3s infinite;
-        }
-
-        /* Smooth scroll */
-        html {
-            scroll-behavior: smooth;
-        }
-
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #14b8a6;
-            border-radius: 3px;
-        }
-    </style>
-</head>
-
-<body class="bg-slate-950 text-white">
-
-    <!-- Vanta.js Background -->
-    <div id="vanta-bg"></div>
-
-    <!-- Content Overlay -->
-    <div class="relative z-10">
-
-        <!-- HERO SECTION -->
-        <section class="min-h-screen flex flex-col justify-center items-center px-6 relative">
-            <!-- Top Bar -->
-            <div class="absolute top-0 left-0 right-0 px-6 py-5 flex items-center justify-between animate-fade-in">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/25">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                        </svg>
-                    </div>
-                    <span class="text-white font-extrabold text-lg tracking-wide uppercase">Poli Paru</span>
-                </div>
-                <a href="<?= BASE_URL ?>/index.php" class="text-sm text-slate-400 hover:text-teal-400 transition-colors flex items-center gap-1.5 font-semibold">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    Kembali ke Portal SIMRS
-                </a>
-            </div>
+    <!-- HERO SECTION -->
+    <section class="min-h-screen flex flex-col justify-center items-center px-6 relative">
 
             <!-- Hero Content -->
             <div class="text-center max-w-4xl mx-auto">
@@ -564,6 +412,4 @@ $pageTitle = 'Poli Paru — Sistem Informasi Tuberkulosis';
             observer.observe(el);
         });
     </script>
-</body>
-
-</html>
+    <?php require_once __DIR__ . '/../layout/footer.php'; ?>
