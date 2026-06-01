@@ -4,7 +4,11 @@
  * Project: MedWeb SIMRS-Cephalo
  */
 
-define('BASE_URL', '/simrs-cephalo');
+if (getenv('VERCEL') == "1") {
+    define('BASE_URL', '');
+} else {
+    define('BASE_URL', '/simrs-cephalo');
+}
 
 // Simple helper to load .env file if it exists (useful for local development)
 function loadEnv() {
