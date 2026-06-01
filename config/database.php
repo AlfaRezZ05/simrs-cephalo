@@ -4,9 +4,10 @@
  * Project: MedWeb SIMRS-Cephalo
  */
 
-$isLocalhost = in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost', '127.0.0.1', '::1']);
+// Deteksi cerdas apakah aplikasi berjalan di dalam sub-folder (seperti XAMPP)
+$isSubFolder = strpos($_SERVER['SCRIPT_NAME'] ?? '', '/simrs-cephalo') === 0;
 
-if ($isLocalhost) {
+if ($isSubFolder) {
     define('BASE_URL', '/simrs-cephalo'); // Mode XAMPP Lokal
 } else {
     define('BASE_URL', ''); // Mode Vercel / Cloud (Root)
