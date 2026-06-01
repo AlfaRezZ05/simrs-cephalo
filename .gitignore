@@ -1,7 +1,7 @@
 # Kredensial dan Rahasia (Sangat Penting!)
 .env
 db_pass.txt
-.env.example
+
 
 # File Sistem (Opsional)
 .DS_Store
