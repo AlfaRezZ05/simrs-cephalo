@@ -367,9 +367,17 @@ $pageTitle = 'Poli Gigi — Cephalo AI';
                                     </span>
                                 </td>
                                 <td>
-                                    <a href="result.php?id=<?= $row['id_analisis'] ?>" class="text-sky-400 hover:text-sky-300 hover:underline font-bold text-xs transition-colors">
-                                        Buka Hasil →
-                                    </a>
+                                    <div class="flex items-center gap-3">
+                                        <a href="result.php?id=<?= $row['id_analisis'] ?>" class="text-sky-400 hover:text-sky-300 hover:underline font-bold text-xs transition-colors">
+                                            Buka Hasil
+                                        </a>
+                                        <form action="delete_analysis.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data analisis pasien ini?');" class="inline">
+                                            <input type="hidden" name="id_analisis" value="<?= $row['id_analisis'] ?>">
+                                            <button type="submit" class="text-red-400 hover:text-red-300 hover:underline font-bold text-xs bg-transparent border-none cursor-pointer p-0 transition-colors">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                             <?php endforeach; ?>

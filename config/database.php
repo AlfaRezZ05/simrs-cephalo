@@ -104,6 +104,18 @@ function getDBConnection(): PDO
                     jenis_kelamin ENUM('L','P'),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+                // 6. Self-healing: Ensure 'tb_medications' table exists (MySQL)
+                $pdo->exec("CREATE TABLE IF NOT EXISTS tb_medications (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    kode VARCHAR(50) NOT NULL UNIQUE,
+                    nama VARCHAR(150) NOT NULL,
+                    kategori VARCHAR(50) NOT NULL,
+                    stok INT DEFAULT 0,
+                    min_stok INT DEFAULT 50,
+                    kadaluarsa DATE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
             } else {
                 // PostgreSQL / Supabase
                 // Standard default port for Postgres is 5432
@@ -159,6 +171,18 @@ function getDBConnection(): PDO
                     jenis_kelamin VARCHAR(2) CHECK (jenis_kelamin IN ('L','P')),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );");
+
+                // 6. Self-healing: Ensure 'tb_medications' table exists (PostgreSQL)
+                $pdo->exec("CREATE TABLE IF NOT EXISTS tb_medications (
+                    id SERIAL PRIMARY KEY,
+                    kode VARCHAR(50) NOT NULL UNIQUE,
+                    nama VARCHAR(150) NOT NULL,
+                    kategori VARCHAR(50) NOT NULL,
+                    stok INT DEFAULT 0,
+                    min_stok INT DEFAULT 50,
+                    kadaluarsa DATE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );");
             }
 
             // Create default users if users table is empty (MySQL & PostgreSQL compatible)
@@ -173,6 +197,23 @@ function getDBConnection(): PDO
                 $ins = $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
                 foreach ($seeds as $s) {
                     $ins->execute([$s[0], $s[1], password_hash($s[2], PASSWORD_DEFAULT), $s[3]]);
+                }
+            }
+
+            // Create default medications if tb_medications is empty
+            $stmtMed = $pdo->query("SELECT COUNT(*) FROM tb_medications");
+            if ($stmtMed->fetchColumn() == 0) {
+                $medSeeds = [
+                    ['FDC-4',   'FDC 4 Kombinasi (RHZE)', 'FDC',    1200, 100, '2027-06-30'],
+                    ['FDC-2',   'FDC 2 Kombinasi (RH)',   'FDC',    800,  100, '2027-08-15'],
+                    ['EMB-400', 'Etambutol 400mg',         'Lini 1', 45,   50,  '2027-07-15'],
+                    ['STREP',   'Streptomisin 1g Injeksi', 'Lini 1', 30,   20,  '2027-03-30'],
+                    ['INH-300', 'Isoniazid 300mg',         'Lini 1', 500,  50,  '2027-05-20'],
+                    ['B6-10',   'Vitamin B6 10mg',         'Sisipan', 2000, 200, '2028-01-01'],
+                ];
+                $insMed = $pdo->prepare("INSERT INTO tb_medications (kode, nama, kategori, stok, min_stok, kadaluarsa) VALUES (?, ?, ?, ?, ?, ?)");
+                foreach ($medSeeds as $m) {
+                    $insMed->execute($m);
                 }
             }
 

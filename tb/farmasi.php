@@ -1,10 +1,6 @@
-<?php
-/**
- * SIMRS-TB — Farmasi & PMO
- */
-
 require_once __DIR__ . '/../core/auth.php';
 require_once __DIR__ . '/../components/components.php';
+require_once __DIR__ . '/../config/database.php';
 
 requireLogin();
 requireRole(['admin', 'dokter', 'farmasi']);
@@ -14,15 +10,116 @@ $user = getCurrentUser();
 $pageTitle = 'Poli Paru — Farmasi & PMO';
 $activePage = 'farmasi';
 
-// ── Dummy: Stok Obat ──
-$stokObat = [
-    ['kode' => 'FDC-4',  'nama' => 'FDC 4 Kombinasi (RHZE)', 'kategori' => 'FDC',    'stok' => 1200, 'min' => 100, 'kadaluarsa' => '2027-06-30', 'alert' => false],
-    ['kode' => 'FDC-2',  'nama' => 'FDC 2 Kombinasi (RH)',   'kategori' => 'FDC',    'stok' => 800,  'min' => 100, 'kadaluarsa' => '2027-08-15', 'alert' => false],
-    ['kode' => 'EMB-400','nama' => 'Etambutol 400mg',         'kategori' => 'Lini 1', 'stok' => 45,   'min' => 50,  'kadaluarsa' => '2027-07-15', 'alert' => true],
-    ['kode' => 'STREP',  'nama' => 'Streptomisin 1g Injeksi', 'kategori' => 'Lini 1', 'stok' => 30,   'min' => 20,  'kadaluarsa' => '2027-03-30', 'alert' => true],
-    ['kode' => 'INH-300','nama' => 'Isoniazid 300mg',         'kategori' => 'Lini 1', 'stok' => 500,  'min' => 50,  'kadaluarsa' => '2027-05-20', 'alert' => false],
-    ['kode' => 'B6-10',  'nama' => 'Vitamin B6 10mg',         'kategori' => 'Sisipan','stok' => 2000, 'min' => 200, 'kadaluarsa' => '2028-01-01', 'alert' => false],
-];
+$error = getFlash('error');
+$success = getFlash('success');
+
+$db = getDBConnection();
+
+// POST Handler for CRUD operations
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $action = $_POST['action'];
+
+    if ($action === 'add_medication') {
+        $kode = trim($_POST['kode'] ?? '');
+        $nama = trim($_POST['nama'] ?? '');
+        $kategori = trim($_POST['kategori'] ?? 'FDC');
+        $stok = (int)($_POST['stok'] ?? 0);
+        $min_stok = (int)($_POST['min_stok'] ?? 50);
+        $kadaluarsa = $_POST['kadaluarsa'] ?? '';
+
+        try {
+            $stmt = $db->prepare("INSERT INTO tb_medications (kode, nama, kategori, stok, min_stok, kadaluarsa) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$kode, $nama, $kategori, $stok, $min_stok, $kadaluarsa]);
+            setFlash('success', 'Obat baru berhasil ditambahkan.');
+        } catch (PDOException $e) {
+            setFlash('error', 'Gagal menambahkan obat: ' . $e->getMessage());
+        }
+        header("Location: farmasi.php");
+        exit();
+    }
+
+    if ($action === 'adjust_stock') {
+        $id = (int)($_POST['id'] ?? 0);
+        $type = $_POST['type'] ?? 'add'; // 'add' or 'reduce'
+        $amount = (int)($_POST['amount'] ?? 0);
+
+        if ($amount > 0) {
+            try {
+                if ($type === 'add') {
+                    $stmt = $db->prepare("UPDATE tb_medications SET stok = stok + ? WHERE id = ?");
+                    $stmt->execute([$amount, $id]);
+                    setFlash('success', 'Stok berhasil ditambahkan.');
+                } else {
+                    // Check if stock is sufficient
+                    $check = $db->prepare("SELECT stok FROM tb_medications WHERE id = ?");
+                    $check->execute([$id]);
+                    $currStock = (int)$check->fetchColumn();
+                    
+                    if ($currStock < $amount) {
+                        setFlash('error', 'Gagal mengurangi stok: Stok saat ini tidak mencukupi.');
+                    } else {
+                        $stmt = $db->prepare("UPDATE tb_medications SET stok = stok - ? WHERE id = ?");
+                        $stmt->execute([$amount, $id]);
+                        setFlash('success', 'Stok berhasil dikurangi.');
+                    }
+                }
+            } catch (PDOException $e) {
+                setFlash('error', 'Gagal menyesuaikan stok: ' . $e->getMessage());
+            }
+        }
+        header("Location: farmasi.php");
+        exit();
+    }
+
+    if ($action === 'delete_medication') {
+        $id = (int)($_POST['id'] ?? 0);
+
+        try {
+            $stmt = $db->prepare("DELETE FROM tb_medications WHERE id = ?");
+            $stmt->execute([$id]);
+            setFlash('success', 'Obat berhasil dihapus.');
+        } catch (PDOException $e) {
+            setFlash('error', 'Gagal menghapus obat: ' . $e->getMessage());
+        }
+        header("Location: farmasi.php");
+        exit();
+    }
+}
+
+// Fetch all medications from database
+$medications = [];
+try {
+    $stmt = $db->query("SELECT * FROM tb_medications ORDER BY kode ASC");
+    $medications = $stmt->fetchAll();
+} catch (PDOException $e) {
+    // fallback if error
+}
+
+$stokObat = [];
+if (!empty($medications)) {
+    foreach ($medications as $m) {
+        $stokObat[] = [
+            'id' => $m['id'],
+            'kode' => $m['kode'],
+            'nama' => $m['nama'],
+            'kategori' => $m['kategori'],
+            'stok' => (int)$m['stok'],
+            'min' => (int)$m['min_stok'],
+            'kadaluarsa' => $m['kadaluarsa'],
+            'alert' => (int)$m['stok'] < (int)$m['min_stok']
+        ];
+    }
+} else {
+    // Default dummy fallback
+    $stokObat = [
+        ['id' => 1, 'kode' => 'FDC-4',  'nama' => 'FDC 4 Kombinasi (RHZE)', 'kategori' => 'FDC',    'stok' => 1200, 'min' => 100, 'kadaluarsa' => '2027-06-30', 'alert' => false],
+        ['id' => 2, 'kode' => 'FDC-2',  'nama' => 'FDC 2 Kombinasi (RH)',   'kategori' => 'FDC',    'stok' => 800,  'min' => 100, 'kadaluarsa' => '2027-08-15', 'alert' => false],
+        ['id' => 3, 'kode' => 'EMB-400','nama' => 'Etambutol 400mg',         'kategori' => 'Lini 1', 'stok' => 45,   'min' => 50,  'kadaluarsa' => '2027-07-15', 'alert' => true],
+        ['id' => 4, 'kode' => 'STREP',  'nama' => 'Streptomisin 1g Injeksi', 'kategori' => 'Lini 1', 'stok' => 30,   'min' => 20,  'kadaluarsa' => '2027-03-30', 'alert' => true],
+        ['id' => 5, 'kode' => 'INH-300','nama' => 'Isoniazid 300mg',         'kategori' => 'Lini 1', 'stok' => 500,  'min' => 50,  'kadaluarsa' => '2027-05-20', 'alert' => false],
+        ['id' => 6, 'kode' => 'B6-10',  'nama' => 'Vitamin B6 10mg',         'kategori' => 'Sisipan','stok' => 2000, 'min' => 200, 'kadaluarsa' => '2028-01-01', 'alert' => false],
+    ];
+}
 
 // ── Dummy: Distribusi Obat ──
 $distribusi = [
@@ -48,6 +145,20 @@ $pmoLogs = [
 
 <main class="lg:ml-64 min-h-[calc(100vh-4rem)] bg-gray-50 dark:bg-slate-950 transition-colors">
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+
+    <!-- Notifications -->
+    <?php if ($error): ?>
+        <div class="mb-5 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <?= htmlspecialchars($error) ?>
+        </div>
+    <?php endif; ?>
+    <?php if ($success): ?>
+        <div class="mb-5 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-sm flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <?= htmlspecialchars($success) ?>
+        </div>
+    <?php endif; ?>
 
     <!-- Breadcrumb -->
     <nav class="flex items-center gap-2 text-sm text-gray-400 mb-5">
@@ -87,7 +198,19 @@ $pmoLogs = [
         </div>
         <?php endif; ?>
 
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden animate-fade-in">
+            <div class="px-5 py-4 border-b border-gray-100 dark:border-slate-850 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gray-50/20 dark:bg-slate-950/20">
+                <h3 class="text-base font-semibold text-gray-800 dark:text-white">Stok Ketersediaan Obat</h3>
+                <div class="flex items-center gap-2">
+                    <a href="print-obat.php" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-teal-600 hover:bg-teal-700 text-white shadow-sm transition-all duration-200">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        Cetak PDF
+                    </a>
+                    <button onclick="openModal('modal-add-med')" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all duration-200">
+                        + Pengadaan Baru
+                    </button>
+                </div>
+            </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
@@ -99,6 +222,7 @@ $pmoLogs = [
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Min. Alert</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Kadaluarsa</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50 dark:divide-slate-850/40">
@@ -118,6 +242,20 @@ $pmoLogs = [
                                 <?php else: ?>
                                     <?= component_badge('Tersedia', 'success') ?>
                                 <?php endif; ?>
+                            </td>
+                            <td class="px-5 py-3">
+                                <div class="flex items-center gap-1.5">
+                                    <button onclick="openAdjustModal(<?= $obat['id'] ?>, '<?= htmlspecialchars($obat['nama']) ?>')" class="px-2 py-1 text-xs font-medium rounded bg-teal-50 hover:bg-teal-100 text-teal-700 dark:bg-teal-500/10 dark:text-teal-400 dark:hover:bg-teal-500/20 transition-colors">
+                                        Stok
+                                    </button>
+                                    <form action="" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus obat ini?');" class="inline">
+                                        <input type="hidden" name="action" value="delete_medication">
+                                        <input type="hidden" name="id" value="<?= $obat['id'] ?>">
+                                        <button type="submit" class="px-2 py-1 text-xs font-medium rounded bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 transition-colors">
+                                            Hapus
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -206,6 +344,94 @@ $pmoLogs = [
 </div>
 </main>
 
+<!-- Modal Add Medication -->
+<div id="modal-add-med" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl animate-fade-in">
+        <div class="px-6 py-4 border-b border-gray-150 dark:border-slate-800 flex items-center justify-between">
+            <h3 class="font-bold text-gray-800 dark:text-white">Pengadaan Obat Baru</h3>
+            <button onclick="closeModal('modal-add-med')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-xl">&times;</button>
+        </div>
+        <form action="" method="POST" class="p-6 space-y-4">
+            <input type="hidden" name="action" value="add_medication">
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase mb-1">Kode Obat</label>
+                <input type="text" name="kode" required placeholder="Contoh: FDC-4, INH-300" class="w-full px-3 py-2 border border-gray-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-gray-800 dark:text-white focus:outline-none focus:border-teal-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase mb-1">Nama Obat</label>
+                <input type="text" name="nama" required placeholder="Nama lengkap obat..." class="w-full px-3 py-2 border border-gray-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-gray-800 dark:text-white focus:outline-none focus:border-teal-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase mb-1">Kategori</label>
+                <select name="kategori" class="w-full px-3 py-2 border border-gray-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-gray-800 dark:text-white focus:outline-none focus:border-teal-500">
+                    <option value="FDC">FDC</option>
+                    <option value="Lini 1">Lini 1</option>
+                    <option value="Lini 2">Lini 2</option>
+                    <option value="Sisipan">Sisipan</option>
+                    <option value="Lainnya">Lainnya</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase mb-1">Stok Awal</label>
+                    <input type="number" name="stok" value="0" min="0" required class="w-full px-3 py-2 border border-gray-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-gray-800 dark:text-white focus:outline-none focus:border-teal-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase mb-1">Min. Alert</label>
+                    <input type="number" name="min_stok" value="50" min="0" required class="w-full px-3 py-2 border border-gray-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-gray-800 dark:text-white focus:outline-none focus:border-teal-500">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase mb-1">Tanggal Kadaluarsa</label>
+                <input type="date" name="kadaluarsa" required class="w-full px-3 py-2 border border-gray-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-gray-800 dark:text-white focus:outline-none focus:border-teal-500">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeModal('modal-add-med')" class="px-4 py-2 text-sm font-medium border border-gray-200 dark:border-slate-800 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-500 dark:text-slate-400">Batal</button>
+                <button type="submit" class="px-4 py-2 text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Adjust Stock -->
+<div id="modal-adjust-stock" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl animate-fade-in">
+        <div class="px-6 py-4 border-b border-gray-150 dark:border-slate-800 flex items-center justify-between">
+            <h3 class="font-bold text-gray-800 dark:text-white">Penyesuaian Stok</h3>
+            <button onclick="closeModal('modal-adjust-stock')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-xl">&times;</button>
+        </div>
+        <form action="" method="POST" class="p-6 space-y-4">
+            <input type="hidden" name="action" value="adjust_stock">
+            <input type="hidden" id="adjust-id" name="id" value="">
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase mb-1 font-mono">Nama Obat</label>
+                <p id="adjust-name" class="text-sm font-semibold text-gray-800 dark:text-white bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-gray-100 dark:border-slate-850/50"></p>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase mb-1">Jenis Aksi</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="flex items-center justify-center gap-2 p-2.5 border border-gray-200 dark:border-slate-800 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300">
+                        <input type="radio" name="type" value="add" checked class="text-teal-600 focus:ring-teal-500">
+                        <span class="text-sm font-medium">Tambah Stok</span>
+                    </label>
+                    <label class="flex items-center justify-center gap-2 p-2.5 border border-gray-200 dark:border-slate-800 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300">
+                        <input type="radio" name="type" value="reduce" class="text-teal-600 focus:ring-teal-500">
+                        <span class="text-sm font-medium">Kurang Stok</span>
+                    </label>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase mb-1">Jumlah Tablet</label>
+                <input type="number" name="amount" min="1" required placeholder="Masukkan jumlah..." class="w-full px-3 py-2 border border-gray-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-gray-800 dark:text-white focus:outline-none focus:border-teal-500">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeModal('modal-adjust-stock')" class="px-4 py-2 text-sm font-medium border border-gray-200 dark:border-slate-800 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-500 dark:text-slate-400">Batal</button>
+                <button type="submit" class="px-4 py-2 text-sm font-medium bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-sm">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function switchTab(tabName) {
     document.querySelectorAll('[id^="panel-"]').forEach(p => p.classList.add('hidden'));
@@ -224,6 +450,22 @@ function switchTab(tabName) {
         tab.classList.add('bg-teal-50', 'text-teal-700');
     }
     tab.classList.remove('text-gray-500', 'dark:text-slate-400');
+}
+
+function openModal(id) {
+    document.getElementById(id).classList.remove('hidden');
+    document.getElementById(id).classList.add('flex');
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+    document.getElementById(id).classList.remove('flex');
+}
+
+function openAdjustModal(id, name) {
+    document.getElementById('adjust-id').value = id;
+    document.getElementById('adjust-name').textContent = name;
+    openModal('modal-adjust-stock');
 }
 </script>
 
