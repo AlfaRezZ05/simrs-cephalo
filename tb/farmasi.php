@@ -247,7 +247,7 @@ $pmoLogs = [
                             <td class="px-5 py-3">
                                 <div class="flex items-center gap-1.5">
                                     <button onclick="openAdjustModal(<?= $obat['id'] ?>, '<?= htmlspecialchars($obat['nama']) ?>')" class="px-2 py-1 text-xs font-medium rounded bg-teal-50 hover:bg-teal-100 text-teal-700 dark:bg-teal-500/10 dark:text-teal-400 dark:hover:bg-teal-500/20 transition-colors">
-                                        Stok
+                                        +/- Stok
                                     </button>
                                     <form action="" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus obat ini?');" class="inline">
                                         <input type="hidden" name="action" value="delete_medication">
