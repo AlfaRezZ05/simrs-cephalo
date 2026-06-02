@@ -31,10 +31,27 @@ if (!$data) {
 }
 
 $file_name = $data['foto_rontgen'];
-$file_path = __DIR__ . '/uploads/' . $file_name;
 
-if (!file_exists($file_path)) {
-    echo json_encode(["status" => "error", "message" => "File gambar fisik tidak ditemukan di direktori uploads"]);
+if (strpos($file_name, 'data:image/') === 0) {
+    // Handle Base64 image by writing it temporarily to the OS temp directory (writable in serverless)
+    $parts = explode(',', $file_name);
+    $base64_data = isset($parts[1]) ? $parts[1] : '';
+    $decoded_data = base64_decode($base64_data);
+    
+    $ext = 'png';
+    if (preg_match('/data:image\/([a-zA-Z0-9]+);base64/', $file_name, $matches)) {
+        $ext = $matches[1];
+    }
+    
+    $file_path = sys_get_temp_dir() . '/temp_rontgen_' . $id_analisis . '.' . $ext;
+    file_put_contents($file_path, $decoded_data);
+} else {
+    // Physical file fallback
+    $file_path = __DIR__ . '/uploads/' . $file_name;
+}
+
+if (!file_exists($file_path) || filesize($file_path) === 0) {
+    echo json_encode(["status" => "error", "message" => "File gambar fisik rontgen tidak dapat dimuat atau tidak ditemukan"]);
     exit();
 }
 
