@@ -49,4 +49,31 @@ function getUserInitials(): string
     }
     return $initials;
 }
+
+// ── Role-Based Access Control (RBAC) ──
+
+function getUserRole(): string
+{
+    $user = getCurrentUser();
+    return $user['role'] ?? 'patient';
+}
+
+function hasRole(string $role): bool
+{
+    return getUserRole() === $role;
+}
+
+function requireRole(array $allowedRoles): void
+{
+    requireLogin();
+    if (!in_array(getUserRole(), $allowedRoles)) {
+        header('Location: ' . BASE_URL . '/auth/forbidden.php');
+        exit;
+    }
+}
+
+function isAdmin(): bool    { return hasRole('admin'); }
+function isDokter(): bool   { return hasRole('dokter'); }
+function isFarmasi(): bool  { return hasRole('farmasi'); }
+function isPatient(): bool  { return hasRole('patient'); }
 ?>

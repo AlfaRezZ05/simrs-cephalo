@@ -70,6 +70,13 @@ function getDBConnection(): PDO
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
+                // Self-healing role column check for MySQL
+                try {
+                    $pdo->query("SELECT role FROM users LIMIT 1");
+                } catch (PDOException $e) {
+                    $pdo->exec("ALTER TABLE users ADD COLUMN role VARCHAR(50) DEFAULT 'patient'");
+                }
+
                 // 4. Self-healing: Ensure 'tb_patients' table exists (MySQL)
                 $pdo->exec("CREATE TABLE IF NOT EXISTS tb_patients (
                     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -118,6 +125,13 @@ function getDBConnection(): PDO
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );");
 
+                // Self-healing role column check for PostgreSQL
+                try {
+                    $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'patient';");
+                } catch (PDOException $e) {
+                    // Fallback in case of older version or permissions
+                }
+
                 // 4. Self-healing: Ensure 'tb_patients' table exists (PostgreSQL)
                 $pdo->exec("CREATE TABLE IF NOT EXISTS tb_patients (
                     id SERIAL PRIMARY KEY,
@@ -147,11 +161,19 @@ function getDBConnection(): PDO
                 );");
             }
 
-            // Create default admin if users table is empty (MySQL & PostgreSQL compatible)
+            // Create default users if users table is empty (MySQL & PostgreSQL compatible)
             $stmt = $pdo->query("SELECT COUNT(*) FROM users");
             if ($stmt->fetchColumn() == 0) {
-                $defaultPass = password_hash('admin123', PASSWORD_DEFAULT);
-                $pdo->exec("INSERT INTO users (name, email, password, role) VALUES ('Administrator', 'admin@simrs.com', '$defaultPass', 'admin')");
+                $seeds = [
+                    ['Administrator', 'admin@simrs.com', 'admin123', 'admin'],
+                    ['Dr. Medika Pratama', 'dokter@simrs.com', 'dokter123', 'dokter'],
+                    ['Apt. Farhan Nugroho', 'farmasi@simrs.com', 'farmasi123', 'farmasi'],
+                    ['Budi Santoso', 'pasien@simrs.com', 'pasien123', 'patient'],
+                ];
+                $ins = $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
+                foreach ($seeds as $s) {
+                    $ins->execute([$s[0], $s[1], password_hash($s[2], PASSWORD_DEFAULT), $s[3]]);
+                }
             }
 
         } catch (PDOException $e) {

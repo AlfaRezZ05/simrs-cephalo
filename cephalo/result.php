@@ -8,6 +8,7 @@ require_once __DIR__ . '/../core/auth.php';
 require_once __DIR__ . '/../config/database.php';
 
 requireLogin();
+requireRole(['admin', 'dokter']);
 startSession();
 
 $user = getCurrentUser();

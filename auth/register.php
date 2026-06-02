@@ -150,6 +150,17 @@ $error = getFlash('error');
             </p>
         </div>
 
+        <!-- Role -->
+        <div class="mb-4">
+            <label for="role" class="block text-xs font-semibold text-slate-300 uppercase tracking-widest mb-1.5">Peran / Jabatan</label>
+            <select id="role" name="role" 
+                    style="width:100%;padding:15px 20px;background:rgba(2,6,23,0.65);border:1px solid var(--glass-border);border-radius:14px;color:white;font-size:0.95rem;transition:all 0.3s;appearance:none;cursor:pointer;">
+                <option value="patient" <?= ($oldInput['role'] ?? '') === 'patient' ? 'selected' : '' ?>>🏥 Pasien / Umum</option>
+                <option value="dokter" <?= ($oldInput['role'] ?? '') === 'dokter' ? 'selected' : '' ?>>🩺 Dokter / Tenaga Medis</option>
+                <option value="farmasi" <?= ($oldInput['role'] ?? '') === 'farmasi' ? 'selected' : '' ?>>💊 Apoteker / Farmasi</option>
+            </select>
+        </div>
+
         <!-- Password -->
         <div class="mb-4">
             <label for="password" class="block text-xs font-semibold text-slate-300 uppercase tracking-widest mb-1.5">Kata Sandi</label>

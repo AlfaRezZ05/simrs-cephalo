@@ -11,6 +11,7 @@ requireLogin();
 startSession();
 
 $user = getCurrentUser();
+$userRole = getUserRole();
 $pageTitle = 'Portal SIMRS Terintegrasi';
 ?>
 <?php require_once __DIR__ . '/layout/header.php'; ?>
@@ -46,6 +47,7 @@ $pageTitle = 'Portal SIMRS Terintegrasi';
     <!-- Poli (Clinics) Grid System -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         
+        <?php if (in_array($userRole, ['admin', 'dokter'])): ?>
         <!-- ======================= -->
         <!-- 1. POLI PARU (ACTIVE) -->
         <!-- ======================= -->
@@ -99,7 +101,9 @@ $pageTitle = 'Portal SIMRS Terintegrasi';
                 Masuk Poli Paru
             </a>
         </div>
+        <?php endif; ?>
 
+        <?php if (in_array($userRole, ['admin', 'dokter'])): ?>
         <!-- ======================= -->
         <!-- 2. POLI GIGI (ACTIVE) -->
         <!-- ======================= -->
@@ -153,7 +157,56 @@ $pageTitle = 'Portal SIMRS Terintegrasi';
                 Masuk Poli Gigi (Cephalo)
             </a>
         </div>
+        <?php endif; ?>
 
+        <?php if ($userRole === 'admin'): ?>
+        <!-- ADMIN PANEL CARD -->
+        <div class="sim-card sim-card-interactive rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group hover:border-red-500/25" style="transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);">
+            <div class="absolute -top-12 -right-12 w-32 h-32 bg-red-500/10 rounded-full blur-2xl opacity-60"></div>
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <span class="sim-badge" style="color:#f87171;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);font-size:0.65rem;padding:4px 10px;border-radius:8px;font-weight:700;">ADMIN</span>
+                </div>
+                <div class="flex items-center gap-3.5 mb-4">
+                    <div class="w-12 h-12 bg-red-500/10 rounded-2xl flex items-center justify-center text-red-400 border border-red-500/10">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white group-hover:text-red-300 transition-colors">Kelola Pengguna</h3>
+                        <p class="text-xs text-slate-500">Manajemen Akun & Hak Akses</p>
+                    </div>
+                </div>
+                <p class="text-slate-400 text-xs leading-relaxed mb-8">Kelola seluruh akun pengguna sistem, ubah peran (Admin, Dokter, Farmasi, Pasien), dan hapus akun yang tidak diperlukan.</p>
+            </div>
+            <a href="admin/users.php" class="sim-btn w-full text-center py-3 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 rounded-xl text-xs font-bold shadow-lg shadow-red-500/10 hover:shadow-red-500/25 transition-all duration-300 text-white">Buka Admin Panel</a>
+        </div>
+        <?php endif; ?>
+
+        <?php if ($userRole === 'farmasi'): ?>
+        <!-- FARMASI SHORTCUT CARD -->
+        <div class="sim-card sim-card-interactive rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group hover:border-amber-500/25" style="transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);">
+            <div class="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl opacity-60"></div>
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <span class="sim-badge" style="color:#fbbf24;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);font-size:0.65rem;padding:4px 10px;border-radius:8px;font-weight:700;">FARMASI AKTIF</span>
+                    <div class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+                </div>
+                <div class="flex items-center gap-3.5 mb-4">
+                    <div class="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-400 border border-amber-500/10">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white group-hover:text-amber-300 transition-colors">Modul Farmasi</h3>
+                        <p class="text-xs text-slate-500">Kelola Stok Obat OAT & Supply</p>
+                    </div>
+                </div>
+                <p class="text-slate-400 text-xs leading-relaxed mb-8">Kelola ketersediaan obat anti-tuberkulosis, pantau stok masuk dan keluar, serta distribusi obat ke pasien rawat jalan.</p>
+            </div>
+            <a href="tb/farmasi.php" class="sim-btn w-full text-center py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-xl text-xs font-bold shadow-lg shadow-amber-500/10 hover:shadow-amber-500/25 transition-all duration-300 text-white">Buka Modul Farmasi</a>
+        </div>
+        <?php endif; ?>
+
+        <?php if (in_array($userRole, ['admin', 'dokter'])): ?>
         <!-- ======================= -->
         <!-- 3. POLI JANTUNG (LOCKED) -->
         <!-- ======================= -->
@@ -273,6 +326,7 @@ $pageTitle = 'Portal SIMRS Terintegrasi';
                 Modul Terkunci
             </button>
         </div>
+        <?php endif; ?>
 
     </div>
 </main>

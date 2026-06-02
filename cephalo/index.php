@@ -8,6 +8,7 @@ require_once __DIR__ . '/../core/auth.php';
 require_once __DIR__ . '/../components/components.php';
 
 requireLogin();
+requireRole(['admin', 'dokter']);
 startSession();
 
 $user = getCurrentUser();

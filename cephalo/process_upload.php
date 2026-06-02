@@ -7,6 +7,7 @@ require_once __DIR__ . '/../core/auth.php';
 require_once __DIR__ . '/../config/database.php';
 
 requireLogin();
+requireRole(['admin', 'dokter']);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $pdo = getDBConnection();

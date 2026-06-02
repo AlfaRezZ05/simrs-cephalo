@@ -5,7 +5,11 @@
  * Supports both local Python (Flask port 5000) and Cloud fallback (Roboflow).
  */
 
+require_once __DIR__ . '/../core/auth.php';
 require_once __DIR__ . '/../config/database.php';
+
+startSession();
+requireRole(['admin', 'dokter']);
 
 header('Content-Type: application/json');
 

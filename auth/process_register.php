@@ -33,6 +33,7 @@ if ($validator->fails()) {
     $_SESSION['old_input'] = [
         'name'  => $_POST['name'] ?? '',
         'email' => $_POST['email'] ?? '',
+        'role'  => $_POST['role'] ?? '',
     ];
     header('Location: ' . BASE_URL . '/auth/register.php');
     exit;
@@ -41,13 +42,15 @@ if ($validator->fails()) {
 $name     = trim($_POST['name']);
 $email    = trim($_POST['email']);
 $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+$role     = in_array($_POST['role'] ?? '', ['patient', 'dokter', 'farmasi']) ? $_POST['role'] : 'patient';
 
 try {
-    $stmt = $db->prepare("INSERT INTO users (name, email, password) VALUES (:name, :email, :password)");
+    $stmt = $db->prepare("INSERT INTO users (name, email, password, role) VALUES (:name, :email, :password, :role)");
     $stmt->execute([
         'name'     => $name,
         'email'    => $email,
         'password' => $password,
+        'role'     => $role,
     ]);
 
     setFlash('success', 'Akun pakar berhasil dibuat! Silakan masuk.');
@@ -60,6 +63,7 @@ try {
     $_SESSION['old_input'] = [
         'name'  => $_POST['name'] ?? '',
         'email' => $_POST['email'] ?? '',
+        'role'  => $_POST['role'] ?? '',
     ];
     header('Location: ' . BASE_URL . '/auth/register.php');
     exit;
