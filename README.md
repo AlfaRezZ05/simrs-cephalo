@@ -1,104 +1,94 @@
 # SIMRS Portal - Integrated AI Diagnostic Platform
 
-SIMRS (Sistem Informasi Manajemen Rumah Sakit) adalah portal cerdas yang mengintegrasikan berbagai poliklinik dengan kemampuan kecerdasan buatan (AI) secara mulus. Repository ini memuat prototipe modul **Poli Paru** (Manajemen Pasien TB) dan **Poli Gigi** (Cephalo AI Diagnostics).
+SIMRS (Sistem Informasi Manajemen Rumah Sakit) adalah portal manajemen pelayanan klinis terpadu yang menggabungkan efisiensi alur administrasi dengan kemampuan kecerdasan buatan (AI) secara aman dan instan. Repositori ini memuat prototipe modul **Poli Paru** (Manajemen Pasien TB) dan **Poli Gigi** (Cephalo AI Diagnostics).
 
 ## 🚀 Fitur Utama
 
-- **Poli Paru (TB Management)**: Sistem pencatatan digital pasien Tuberkulosis dengan integrasi sistem *tracking* rekam medis, kelola CRUD (Create, Read, Update, Delete) pasien lengkap dengan riwayat pengobatan dan fase.
-- **Poli Gigi (Cephalo AI)**: Sistem berbasis kecerdasan buatan untuk mendeteksi *landmark* anatomi ortodonti dari hasil X-Ray Sefalometri.
-- **UI/UX Modern**: Desain antarmuka *dark-mode* responsif dengan *glassmorphism* dan micro-animasi liquid yang memanjakan mata.
-- **Auto-Migration Database**: Sistem mampu membangun *database* secara otomatis pada saat pertama kali dijalankan (Self-healing system).
+- **Poli Paru (TB Management)**: Sistem pencatatan digital pasien Tuberkulosis terintegrasi dengan sistem *tracking* rekam medis, kelola CRUD (Create, Read, Update, Delete) pasien lengkap dengan riwayat pengobatan dan pemantauan fase klinis.
+- **Poli Gigi (Cephalo AI)**: Sistem berbasis kecerdasan buatan untuk mendeteksi *landmark* anatomi ortodonti dari hasil X-Ray Sefalometri secara non-invasif.
+- **UI/UX Modern**: Desain antarmuka *dark-mode* responsif dengan *glassmorphism* dan micro-animasi modern yang dioptimalkan untuk kenyamanan operasional tenaga medis di lapangan.
+- **Auto-Migration Database**: Sistem mampu membangun skema *database* secara otomatis pada saat pertama kali terhubung dengan server database (Self-healing system).
 
 ## 🛠️ Persyaratan Sistem
 
 - PHP 8.x
-- MySQL / MariaDB (via XAMPP atau sejenisnya)
-- Python 3.9+ (Opsional: Hanya jika ingin menjalankan AI Sefalometri lokal)
-- Modul PHP PDO (secara default sudah aktif di XAMPP)
+- Database Server (MySQL/MariaDB untuk Lokal, atau PostgreSQL untuk Cloud)
+- Python 3.9+ (Opsional: Jika ingin menjalankan mesin AI Sefalometri lokal)
+- Modul PHP PDO (PDO PGSQL / PDO MYSQL)
 
-## 📥 Panduan Instalasi (Plug and Play)
+## 📥 Panduan Instalasi Lokal (Development)
 
-1. **Clone Repository** ini ke dalam folder `htdocs` (jika menggunakan XAMPP) atau `www` (WAMP).
+1. **Clone Repository** ini ke direktori root web server lokal Anda (misal `htdocs` pada XAMPP):
    ```bash
-   cd c:\xampp\htdocs
    git clone https://github.com/username/simrs-cephalo.git
    ```
 
-2. **Jalankan Web Server dan Database**
-   Buka XAMPP Control Panel, lalu jalankan **Apache** dan **MySQL**.
+2. **Jalankan Apache dan Database Server** pada control panel lokal Anda.
 
-3. **Buka Aplikasi di Browser**
-   Anda **tidak perlu** mengimpor atau membuat database manual di phpMyAdmin. Cukup buka tautan berikut di browser:
-   ```text
-   http://localhost/simrs-cephalo
-   ```
-   > Sistem secara otomatis akan membuat *database* `backbone_medweb` beserta tabel `users`, `tb_patients`, dan `cephalo_patients`.
-
-4. **Login ke Sistem**
-   Sistem telah membuat akun administrator default secara otomatis:
-   - **Email:** `admin@simrs.com`
-   - **Password:** `admin123`
-
-## 🧠 (Opsional) Menjalankan Python AI Backend Sefalometri
-Untuk bisa menguji unggah foto Rontgen Gigi pada fitur Cephalo AI, *backend* Python wajib dijalankan:
-1. Buka Terminal / Command Prompt.
-2. Masuk ke direktori `cephalo/ai_engine`:
-   ```bash
-   cd c:\xampp\htdocs\simrs-cephalo\cephalo\ai_engine
-   ```
-3. Install dependensi (disarankan menggunakan virtual environment):
-   ```bash
-   pip install flask flask-cors werkzeug pillow
-   ```
-4. Jalankan AI Engine:
-   ```bash
-   python app.py
-   ```
-   *Terminal akan memunculkan info bahwa server berjalan di `http://127.0.0.1:5000/predict`*
-
-## 📁 Struktur Direktori
-- `assets/` - Kumpulan aset CSS (Tailwind) dan JavaScript.
-- `components/` - Kumpulan komponen UI modular bergaya *shadcn*.
-- `config/` - Konfigurasi dan *database self-healing script*.
-- `layout/` - Header, footer, navbar dan struktur sistem *portal hub*.
-- `tb/` - Modul Poliklinik Paru.
-- `cephalo/` - Modul Poliklinik Gigi dan Direktori Upload Rontgen.
-- `cephalo/ai_engine/` - Modul *backend* Python untuk *machine learning* dan AI inference.
-
-## 🌐 Panduan Publikasi ke Internet & Migrasi Supabase
-
-Aplikasi SIMRS-Cephalo kini telah ditingkatkan agar mendukung arsitektur *cloud-ready* dengan integrasi **Supabase (PostgreSQL)** untuk *database production* dan siap di-deploy ke hosting publik (seperti Render, Railway, atau Shared Hosting cPanel).
-
-### 1. Migrasi Database ke Supabase
-1. Buat proyek baru di [Supabase](https://supabase.com).
-2. Salin kredensial database dari menu **Settings -> Database** di dashboard Supabase.
-3. Buat file `.env` di direktori root proyek (salin dari `.env.example`):
+3. **Konfigurasi Environment Variable**
+   Salin file `.env.example` menjadi `.env` dan sesuaikan kredensial database lokal Anda:
    ```bash
    cp .env.example .env
    ```
-4. Ubah isi `.env` sesuai kredensial database Supabase Anda:
+
+4. **Buka Aplikasi di Browser**
+   Buka alamat aplikasi di browser:
+   ```text
+   http://localhost/simrs-cephalo
+   ```
+   > Sistem *Self-Healing* secara otomatis mendeteksi koneksi dan membangun seluruh tabel database yang diperlukan.
+
+5. **Akses Akun Default**
+   Gunakan akun administrator pengujian lokal yang terbuat otomatis:
+   - **Email:** `admin@example.com` (Ubah pada database setelah instalasi selesai)
+   - **Password:** `admin123`
+
+## 🧠 Menjalankan Python AI Backend Sefalometri (Opsional)
+Untuk memproses data X-Ray Gigi menggunakan model AI lokal:
+1. Buka Terminal dan arahkan ke folder `cephalo/ai_engine`:
+   ```bash
+   cd cephalo/ai_engine
+   ```
+2. Install dependensi python:
+   ```bash
+   pip install flask flask-cors werkzeug pillow
+   ```
+3. Jalankan server backend AI:
+   ```bash
+   python app.py
+   ```
+   *Mesin AI lokal akan aktif dan melayani request inferensi.*
+
+## 📁 Struktur Direktori
+- `assets/` - Kumpulan aset CSS dan JavaScript global.
+- `components/` - Komponen antarmuka modular.
+- `config/` - Konfigurasi dan *database self-healing engine*.
+- `layout/` - Kerangka navigasi (Header, Footer, Navbar).
+- `tb/` - Modul Poliklinik Paru.
+- `cephalo/` - Modul Poliklinik Gigi & AI Sefalometri.
+
+## 🌐 Panduan Publikasi (Deployment)
+
+Aplikasi SIMRS-Cephalo dirancang siap dipublikasikan ke layanan hosting awan (cloud) seperti Render, Railway, Vercel, maupun Server Shared Hosting.
+
+### 1. Integrasi Cloud Database
+1. Buat database baru di penyedia database cloud (seperti PostgreSQL Supabase/Aiven).
+2. Salin kredensial koneksi ke file `.env` di server hosting Anda:
    ```env
    DB_CONNECTION=pgsql
-   DB_HOST=aws-0-ap-southeast-1.pooler.supabase.com
+   DB_HOST=your-database-host.com
    DB_PORT=5432
-   DB_DATABASE=postgres
-   DB_USERNAME=postgres
-   DB_PASSWORD=password-supabase-anda
+   DB_DATABASE=your_db_name
+   DB_USERNAME=your_db_user
+   DB_PASSWORD=your_secure_password
    ```
-5. Saat pertama kali diakses, sistem *Self-Healing* SIMRS akan otomatis mendeteksi database PostgreSQL Supabase Anda dan membuat seluruh tabel yang diperlukan secara instan!
 
-### 2. Panduan Deploy ke Vercel (100% Gratis & Serverless)
-Aplikasi ini sudah dilengkapi dengan file `vercel.json` sehingga siap untuk langsung dijalankan di Vercel menggunakan runtime `vercel-php`.
-
-**Langkah Deploy via Vercel Dashboard:**
-1. Push kode Anda ke repository **GitHub** pribadi atau publik.
-2. Masuk ke [Vercel.com](https://vercel.com) dan login dengan akun GitHub Anda.
-3. Klik **Add New -> Project**, lalu pilih repository SIMRS-Cephalo Anda.
-4. Di bagian konfigurasi **Environment Variables**, masukkan seluruh variabel dari file `.env` Anda (seperti `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`).
-5. Klik **Deploy**, dan dalam beberapa detik aplikasi Anda akan langsung *online*!
-
-> **Catatan Serverless:** Karena Vercel menggunakan sistem file *ephemeral* (sementara), file seperti unggahan Rontgen mungkin tidak akan tersimpan permanen antar sesi, namun seluruh fitur database rekam medis akan berjalan sempurna.
+### 2. Deploy ke Serverless Platform (Vercel)
+Aplikasi ini mendukung *deployment serverless* menggunakan runtime PHP. 
+1. Pastikan file `vercel.json` ada di root folder repositori.
+2. Daftarkan repositori Anda di dashboard Vercel.
+3. Masukkan konfigurasi variabel lingkungan database Anda (`DB_CONNECTION`, `DB_HOST`, dsb.) pada menu **Environment Variables** di Vercel Dashboard.
+4. Lakukan deployment. Seluruh database akan dimigrasikan secara otomatis pada inisialisasi aplikasi pertama kali.
 
 ---
-Dikembangkan dengan ❤️ sebagai portal diagnostik cerdas generasi selanjutnya.
-
+*Keamanan Data dan Kepatuhan Privasi Rekam Medis Pasien adalah Prioritas Utama.*
