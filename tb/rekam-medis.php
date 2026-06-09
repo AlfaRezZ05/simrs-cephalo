@@ -292,8 +292,8 @@ $labTimeline = [
                             <div class="flex items-center gap-3">
                                 <button onclick="openModal('detailModal')" class="text-teal-600 dark:text-emerald-450 hover:underline text-xs font-medium">Detail</button>
                                 <?php if (!empty($p['id'])): ?>
-                                <button type="button" onclick='openEditModal(<?= json_encode($p) ?>)' class="text-amber-500 hover:underline text-xs font-medium">Edit</button>
-                                <button type="button" onclick="openDeleteModal(<?= $p['id'] ?>)" class="text-red-500 hover:underline text-xs font-medium">Hapus</button>
+                                <button type="button" onclick="openEditModal(<?= htmlspecialchars(json_encode($p), ENT_QUOTES, 'UTF-8') ?>)" class="text-amber-500 hover:underline text-xs font-medium">Edit</button>
+                                <button type="button" onclick="openDeleteModal('<?= htmlspecialchars($p['id'], ENT_QUOTES, 'UTF-8') ?>')" class="text-red-500 hover:underline text-xs font-medium">Hapus</button>
                                 <?php endif; ?>
                             </div>
                         </td>
@@ -391,12 +391,12 @@ foreach ($registeredPatients as $rp) {
 ?>
 
 <!-- Add Patient Modal -->
-<?= component_modal('addPatientModal', [
-    'title' => 'Tambah Pasien Baru',
-    'size' => 'lg',
-    'content' => '
-    <form id="addPatientForm" method="POST" action="">
-        <input type="hidden" name="action_type" value="add_patient">
+<form id="addPatientForm" method="POST" action="">
+    <input type="hidden" name="action_type" value="add_patient">
+    <?= component_modal('addPatientModal', [
+        'title' => 'Tambah Pasien Baru',
+        'size' => 'lg',
+        'content' => '
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="mb-4 sm:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 dark:text-slate-305 mb-1.5">Hubungkan ke Akun Terdaftar (Opsional)</label>
@@ -446,22 +446,22 @@ foreach ($registeredPatients as $rp) {
             </div>
 
             ' . component_input('alamat', ['label' => 'Alamat Lengkap', 'type' => 'textarea', 'placeholder' => 'Alamat lengkap...', 'class' => 'sm:col-span-2']) . '
-        </div>
-    </form>',
-    'footer' => component_button('Batal', ['variant' => 'outline', 'onclick' => "closeModal('addPatientModal')"])
-        . ' ' . component_button('Simpan Pasien', ['variant' => 'primary', 'class' => '!bg-emerald-600 hover:!bg-emerald-700', 'onclick' => "document.getElementById('addPatientForm').submit();"])
-]) ?>
+        </div>',
+        'footer' => component_button('Batal', ['variant' => 'outline', 'type' => 'button', 'onclick' => "closeModal('addPatientModal')"])
+            . ' ' . component_button('Simpan Pasien', ['variant' => 'primary', 'type' => 'submit', 'class' => '!bg-emerald-600 hover:!bg-emerald-700'])
+    ]) ?>
+</form>
 
 <?php require_once __DIR__ . '/../layout/footer.php'; ?>
 
 <!-- Edit Patient Modal -->
-<?= component_modal('editPatientModal', [
-    'title' => 'Edit Data Pasien',
-    'size' => 'lg',
-    'content' => '
-    <form id="editPatientForm" method="POST" action="">
-        <input type="hidden" name="action_type" value="edit_patient">
-        <input type="hidden" name="id" id="edit_id" value="">
+<form id="editPatientForm" method="POST" action="">
+    <input type="hidden" name="action_type" value="edit_patient">
+    <input type="hidden" name="id" id="edit_id" value="">
+    <?= component_modal('editPatientModal', [
+        'title' => 'Edit Data Pasien',
+        'size' => 'lg',
+        'content' => '
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             ' . component_input('nama_pasien', ['id' => 'edit_nama', 'label' => 'Nama Lengkap', 'required' => true]) . '
             ' . component_input('nik', ['id' => 'edit_nik', 'label' => 'NIK (16 Digit)', 'required' => true]) . '
@@ -504,11 +504,11 @@ foreach ($registeredPatients as $rp) {
             </div>
 
             ' . component_input('alamat', ['id' => 'edit_alamat', 'label' => 'Alamat Lengkap', 'type' => 'textarea', 'class' => 'sm:col-span-2']) . '
-        </div>
-    </form>',
-    'footer' => component_button('Batal', ['variant' => 'outline', 'onclick' => "closeModal('editPatientModal')"])
-        . ' ' . component_button('Simpan Perubahan', ['variant' => 'primary', 'class' => '!bg-amber-500 hover:!bg-amber-600', 'onclick' => "document.getElementById('editPatientForm').submit();"])
-]) ?>
+        </div>',
+        'footer' => component_button('Batal', ['variant' => 'outline', 'type' => 'button', 'onclick' => "closeModal('editPatientModal')"])
+            . ' ' . component_button('Simpan Perubahan', ['variant' => 'primary', 'type' => 'submit', 'class' => '!bg-amber-500 hover:!bg-amber-600'])
+    ]) ?>
+</form>
 
 <!-- Delete Confirmation Modal -->
 <?= component_modal('deleteConfirmModal', [
