@@ -116,6 +116,43 @@ function getDBConnection(): PDO
                     kadaluarsa DATE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+                // 7. Self-healing: Ensure 'tb_appointments' table exists (MySQL)
+                $pdo->exec("CREATE TABLE IF NOT EXISTS tb_appointments (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    pasien_name VARCHAR(150) NOT NULL,
+                    waktu VARCHAR(10) NOT NULL,
+                    tanggal DATE NOT NULL,
+                    jenis VARCHAR(100) NOT NULL,
+                    dokter VARCHAR(100) NOT NULL,
+                    status VARCHAR(50) DEFAULT 'Terjadwal',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+                // 8. Self-healing: Ensure 'tb_screenings' table exists (MySQL)
+                $pdo->exec("CREATE TABLE IF NOT EXISTS tb_screenings (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    pasien_name VARCHAR(150) NOT NULL,
+                    tanggal TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    confidence DECIMAL(5,2) NOT NULL,
+                    hasil VARCHAR(100) NOT NULL,
+                    dirujuk BOOLEAN DEFAULT FALSE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+                // 9. Self-healing: Ensure 'tb_compliance' table exists (MySQL)
+                $pdo->exec("CREATE TABLE IF NOT EXISTS tb_compliance (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    nama_pasien VARCHAR(150) NOT NULL UNIQUE,
+                    no_rm VARCHAR(50) NOT NULL UNIQUE,
+                    fase VARCHAR(50) NOT NULL,
+                    kepatuhan INT NOT NULL,
+                    hari_patuh INT NOT NULL,
+                    total_hari INT NOT NULL,
+                    risiko VARCHAR(50) NOT NULL,
+                    streak INT NOT NULL,
+                    heatmap TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
             } else {
                 // PostgreSQL / Supabase
                 // Standard default port for Postgres is 5432
@@ -183,6 +220,43 @@ function getDBConnection(): PDO
                     kadaluarsa DATE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );");
+
+                // 7. Self-healing: Ensure 'tb_appointments' table exists (PostgreSQL)
+                $pdo->exec("CREATE TABLE IF NOT EXISTS tb_appointments (
+                    id SERIAL PRIMARY KEY,
+                    pasien_name VARCHAR(150) NOT NULL,
+                    waktu VARCHAR(10) NOT NULL,
+                    tanggal DATE NOT NULL,
+                    jenis VARCHAR(100) NOT NULL,
+                    dokter VARCHAR(100) NOT NULL,
+                    status VARCHAR(50) DEFAULT 'Terjadwal',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );");
+
+                // 8. Self-healing: Ensure 'tb_screenings' table exists (PostgreSQL)
+                $pdo->exec("CREATE TABLE IF NOT EXISTS tb_screenings (
+                    id SERIAL PRIMARY KEY,
+                    pasien_name VARCHAR(150) NOT NULL,
+                    tanggal TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    confidence DECIMAL(5,2) NOT NULL,
+                    hasil VARCHAR(100) NOT NULL,
+                    dirujuk BOOLEAN DEFAULT FALSE
+                );");
+
+                // 9. Self-healing: Ensure 'tb_compliance' table exists (PostgreSQL)
+                $pdo->exec("CREATE TABLE IF NOT EXISTS tb_compliance (
+                    id SERIAL PRIMARY KEY,
+                    nama_pasien VARCHAR(150) NOT NULL UNIQUE,
+                    no_rm VARCHAR(50) NOT NULL UNIQUE,
+                    fase VARCHAR(50) NOT NULL,
+                    kepatuhan INT NOT NULL,
+                    hari_patuh INT NOT NULL,
+                    total_hari INT NOT NULL,
+                    risiko VARCHAR(50) NOT NULL,
+                    streak INT NOT NULL,
+                    heatmap TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );");
             }
 
             // Create default users if users table is empty (MySQL & PostgreSQL compatible)
@@ -214,6 +288,81 @@ function getDBConnection(): PDO
                 $insMed = $pdo->prepare("INSERT INTO tb_medications (kode, nama, kategori, stok, min_stok, kadaluarsa) VALUES (?, ?, ?, ?, ?, ?)");
                 foreach ($medSeeds as $m) {
                     $insMed->execute($m);
+                }
+            }
+
+            // Create default patients if tb_patients is empty
+            $stmtPat = $pdo->query("SELECT COUNT(*) FROM tb_patients");
+            if ($stmtPat->fetchColumn() == 0) {
+                $patSeeds = [
+                    ['RM-2026-0142', '3201010101010001', 'Ahmad Fauzi',    '1995-04-12', 'L', 'Jl. Salemba Raya No. 4, Jakarta', '081234567890', 'Paru',        'Baru', 'Intensif', 'Aktif', '2026-04-01'],
+                    ['RM-2026-0198', '3201010101010002', 'Siti Aminah',    '1998-08-22', 'P', 'Jl. Kramat Raya No. 12, Jakarta',  '081234567891', 'Paru',        'Baru', 'Intensif', 'Aktif', '2026-04-20'],
+                    ['RM-2026-0076', '3201010101010003', 'Budi Santoso',   '1989-12-05', 'L', 'Jl. Kenari No. 45, Jakarta',      '081234567892', 'Ekstra Paru', 'Baru', 'Lanjutan', 'Aktif', '2026-01-15'],
+                    ['RM-2026-0213', '3201010101010004', 'Dewi Lestari',   '2001-01-30', 'P', 'Jl. Raden Saleh No. 9, Jakarta',   '081234567893', 'Paru',        'Baru', 'Intensif', 'Aktif', '2026-05-01'],
+                    ['RM-2026-0167', '3201010101010005', 'Riko Pratama',   '1992-11-14', 'L', 'Jl. Cikini Raya No. 88, Jakarta',  '081234567894', 'Paru',        'Baru', 'Lanjutan', 'Aktif', '2026-02-10'],
+                    ['RM-2026-0089', '3201010101010006', 'Rina Wijaya',    '1985-06-25', 'P', 'Jl. Menteng No. 101, Jakarta',     '081234567895', 'Paru',        'Baru', 'Lanjutan', 'Aktif', '2026-01-20'],
+                ];
+                $insPat = $pdo->prepare("INSERT INTO tb_patients (no_rm, nik, nama, tanggal_lahir, jenis_kelamin, alamat, no_telepon, kategori_tb, tipe_pasien, fase_pengobatan, status, tanggal_mulai_pengobatan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                foreach ($patSeeds as $p) {
+                    $insPat->execute($p);
+                }
+            }
+
+            // Create default appointments if tb_appointments is empty
+            $stmtApp = $pdo->query("SELECT COUNT(*) FROM tb_appointments");
+            if ($stmtApp->fetchColumn() == 0) {
+                $appSeeds = [
+                    ['Rina Wijaya',    '08:00', date('Y-m-d'), 'Kontrol Rutin',   'dr. Rina Susanti',  'Selesai'],
+                    ['Ahmad Fauzi',    '09:30', date('Y-m-d'), 'Evaluasi Fase',   'dr. Rina Susanti',  'Selesai'],
+                    ['Dewi Lestari',   '10:00', date('Y-m-d'), 'Pemeriksaan Lab',  'dr. Aditya Putra', 'Terjadwal'],
+                    ['Hendra Gunawan', '11:00', date('Y-m-d'), 'Kontrol Rutin',   'dr. Hendra Wijaya', 'Terjadwal'],
+                    ['Maya Sari',      '13:30', date('Y-m-d'), 'Konsultasi',      'dr. Rina Susanti',  'Terjadwal'],
+                    ['Budi Santoso',   '14:00', date('Y-m-d'), 'Rontgen',         'dr. Aditya Putra',  'Terjadwal'],
+                    ['Siti Aminah',    '15:30', date('Y-m-d'), 'Kontrol Rutin',   'dr. Rina Susanti',  'Terjadwal'],
+                    ['Riko Pratama',   '09:00', date('Y-m-d', strtotime('+1 day')), 'Kontrol Rutin', 'dr. Rina Susanti', 'Terjadwal'],
+                    ['Lina Marlina',   '10:30', date('Y-m-d', strtotime('+1 day')), 'Pemeriksaan Lab','dr. Hendra Wijaya', 'Terjadwal'],
+                    ['Agus Supriyadi', '11:00', date('Y-m-d', strtotime('+2 days')), 'Evaluasi Fase', 'dr. Aditya Putra', 'Terjadwal'],
+                    ['Fitriani',       '13:30', date('Y-m-d', strtotime('+3 days')), 'Rontgen',       'dr. Hendra Wijaya', 'Terjadwal'],
+                ];
+                $insApp = $pdo->prepare("INSERT INTO tb_appointments (pasien_name, waktu, tanggal, jenis, dokter, status) VALUES (?, ?, ?, ?, ?, ?)");
+                foreach ($appSeeds as $a) {
+                    $insApp->execute($a);
+                }
+            }
+
+            // Create default screenings if tb_screenings is empty
+            $stmtScr = $pdo->query("SELECT COUNT(*) FROM tb_screenings");
+            if ($stmtScr->fetchColumn() == 0) {
+                $scrSeeds = [
+                    ['Rina Wijaya',     date('Y-m-d H:i:s', strtotime('-1 hour')),  87.20, 'Positif Indikasi',        1],
+                    ['Dedi Kurniawan',  date('Y-m-d H:i:s', strtotime('-2 hours')), 23.50, 'Negatif Indikasi',        0],
+                    ['Fitriani',        date('Y-m-d H:i:s', strtotime('-1 day')),   92.80, 'Positif Indikasi',        1],
+                    ['Agus Supriyadi',  date('Y-m-d H:i:s', strtotime('-1 day')),   45.10, 'Tidak Dapat Ditentukan',  0],
+                    ['Lina Marlina',    date('Y-m-d H:i:s', strtotime('-2 days')),  78.60, 'Positif Indikasi',        1],
+                    ['Bambang Setiawan', date('Y-m-d H:i:s', strtotime('-2 days')), 12.30, 'Negatif Indikasi',        0],
+                    ['Budi Santoso',    date('Y-m-d H:i:s', strtotime('-1 hour')),  84.50, 'Positif Indikasi',        1],
+                    ['Budi Santoso',    date('Y-m-d H:i:s', strtotime('-30 days')), 15.20, 'Negatif Indikasi',        0],
+                ];
+                $insScr = $pdo->prepare("INSERT INTO tb_screenings (pasien_name, tanggal, confidence, hasil, dirujuk) VALUES (?, ?, ?, ?, ?)");
+                foreach ($scrSeeds as $s) {
+                    $insScr->execute($s);
+                }
+            }
+
+            // Create default compliance records if tb_compliance is empty
+            $stmtComp = $pdo->query("SELECT COUNT(*) FROM tb_compliance");
+            if ($stmtComp->fetchColumn() == 0) {
+                $compSeeds = [
+                    ['Ahmad Fauzi',   'RM-2026-0142', 'Intensif', 92,  55, 60, 'Rendah',  14, json_encode([1,1,1,1,0,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1])],
+                    ['Siti Aminah',   'RM-2026-0198', 'Intensif', 85,  34, 40, 'Sedang',  5,  json_encode([1,1,0,1,1,1,0,1,1,1,1,0,0,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1])],
+                    ['Budi Santoso',  'RM-2026-0076', 'Lanjutan', 62,  93, 150,'Tinggi',  0,  json_encode([1,1,0,0,1,0,1,1,0,0,1,1,1,0,0,0,1,1,0,1,0,0,1,0,0,1,1,0,0,0])],
+                    ['Dewi Lestari',  'RM-2026-0213', 'Intensif', 78,  25, 32, 'Sedang',  3,  json_encode([1,1,1,0,1,1,0,1,1,1,0,1,1,0,1,1,1,1,0,0,1,1,1,1,0,1,1,1,1,1])],
+                    ['Riko Pratama',  'RM-2026-0167', 'Lanjutan', 95,  115,120,'Rendah',  22, json_encode([1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1])],
+                    ['Rina Wijaya',   'RM-2026-0089', 'Lanjutan', 45,  68, 150,'Kritis',  0,  json_encode([0,0,1,0,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,1,0])],
+                ];
+                $insComp = $pdo->prepare("INSERT INTO tb_compliance (nama_pasien, no_rm, fase, kepatuhan, hari_patuh, total_hari, risiko, streak, heatmap) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                foreach ($compSeeds as $c) {
+                    $insComp->execute($c);
                 }
             }
 

@@ -1,10 +1,5 @@
 <?php
-/**
- * SIMRS-TB — Jadwal Kontrol
- */
-
-require_once __DIR__ . '/../core/auth.php';
-require_once __DIR__ . '/../components/components.php';
+require_once __DIR__ . '/../config/database.php';
 
 requireLogin();
 requireRole(['admin', 'dokter', 'patient']);
@@ -15,45 +10,76 @@ $pageTitle = 'Poli Paru — Jadwal Kontrol';
 $activePage = 'jadwal';
 $userRole = getUserRole();
 
-// ── Dummy: Jadwal ──
-$jadwalHariIni = [
-    ['waktu' => '08:00', 'pasien' => 'Rina Wijaya',       'jenis' => 'Kontrol Rutin',   'dokter' => 'dr. Rina Susanti',  'status' => 'Selesai'],
-    ['waktu' => '09:30', 'pasien' => 'Ahmad Fauzi',       'jenis' => 'Evaluasi Fase',   'dokter' => 'dr. Rina Susanti',  'status' => 'Selesai'],
-    ['waktu' => '10:00', 'pasien' => 'Dewi Lestari',      'jenis' => 'Pemeriksaan Lab',  'dokter' => 'dr. Aditya Putra', 'status' => 'Terjadwal'],
-    ['waktu' => '11:00', 'pasien' => 'Hendra Gunawan',    'jenis' => 'Kontrol Rutin',   'dokter' => 'dr. Hendra Wijaya', 'status' => 'Terjadwal'],
-    ['waktu' => '13:30', 'pasien' => 'Maya Sari',         'jenis' => 'Konsultasi',      'dokter' => 'dr. Rina Susanti',  'status' => 'Terjadwal'],
-    ['waktu' => '14:00', 'pasien' => 'Budi Santoso',      'jenis' => 'Rontgen',         'dokter' => 'dr. Aditya Putra',  'status' => 'Terjadwal'],
-    ['waktu' => '15:30', 'pasien' => 'Siti Aminah',       'jenis' => 'Kontrol Rutin',   'dokter' => 'dr. Rina Susanti',  'status' => 'Terjadwal'],
-];
+$db = getDBConnection();
+$error = getFlash('error');
+$success = getFlash('success');
 
-$jadwalMendatang = [
-    ['tanggal' => '2026-05-14', 'pasien' => 'Riko Pratama',   'jenis' => 'Kontrol Rutin', 'dokter' => 'dr. Rina Susanti'],
-    ['tanggal' => '2026-05-14', 'pasien' => 'Lina Marlina',   'jenis' => 'Pemeriksaan Lab','dokter' => 'dr. Hendra Wijaya'],
-    ['tanggal' => '2026-05-15', 'pasien' => 'Agus Supriyadi', 'jenis' => 'Evaluasi Fase', 'dokter' => 'dr. Aditya Putra'],
-    ['tanggal' => '2026-05-16', 'pasien' => 'Fitriani',       'jenis' => 'Rontgen',       'dokter' => 'dr. Hendra Wijaya'],
-];
+// POST Handler for adding appointment
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $action = $_POST['action'];
+    if ($action === 'add_appointment') {
+        $pasien = trim($_POST['pasien_name'] ?? '');
+        $tanggal = $_POST['tanggal'] ?? '';
+        $waktu = $_POST['waktu'] ?? '';
+        $jenis = $_POST['jenis'] ?? 'Kontrol Rutin';
+        $catatan = trim($_POST['catatan'] ?? '');
+        $dokter = 'dr. Rina Susanti'; // default doctor
+        
+        try {
+            $stmt = $db->prepare("INSERT INTO tb_appointments (pasien_name, tanggal, waktu, jenis, catatan, dokter_name, status) VALUES (?, ?, ?, ?, ?, ?, 'Terjadwal')");
+            $stmt->execute([$pasien, $tanggal, $waktu, $jenis, $catatan, $dokter]);
+            setFlash('success', 'Jadwal kontrol berhasil disimpan.');
+        } catch (PDOException $e) {
+            setFlash('error', 'Gagal menyimpan jadwal: ' . $e->getMessage());
+        }
+        header("Location: jadwal.php");
+        exit;
+    }
+}
 
-// ── Kalender bulan ini ──
+// ── Calendar Month Init ──
 $currentMonth = date('n');
 $currentYear = date('Y');
 $daysInMonth = date('t');
 $firstDay = date('N', mktime(0, 0, 0, $currentMonth, 1, $currentYear));
 $today = date('j');
 
-// Jadwal per tanggal (dummy)
-$jadwalPerTanggal = [3 => 2, 5 => 1, 8 => 3, 10 => 1, 13 => 7, 14 => 2, 15 => 1, 16 => 1, 18 => 2, 22 => 4, 25 => 3, 28 => 1];
+// Fetch schedules from DB
+$jadwalHariIni = [];
+$jadwalMendatang = [];
+$jadwalPerTanggal = [];
 
-if ($userRole === 'patient') {
-    $jadwalHariIni = [
-        ['waktu' => '10:00', 'pasien' => $user['name'], 'jenis' => 'Kontrol Rutin & Evaluasi Klinis', 'dokter' => 'dr. Rina Susanti', 'status' => 'Terjadwal']
-    ];
-    $jadwalMendatang = [
-        ['tanggal' => date('Y-m-d', strtotime('+7 days')), 'pasien' => $user['name'], 'jenis' => 'Pemeriksaan Lab Lanjutan', 'dokter' => 'dr. Hendra Wijaya']
-    ];
-    // Mark only today's date and 7 days from now on calendar
-    $todayDate = (int)date('j');
-    $futureDate = (int)date('j', strtotime('+7 days'));
-    $jadwalPerTanggal = [$todayDate => 1, $futureDate => 1];
+try {
+    // 1. Today's schedule
+    if ($userRole === 'patient') {
+        $stmtToday = $db->prepare("SELECT * FROM tb_appointments WHERE tanggal = ? AND LOWER(pasien_name) = LOWER(?) ORDER BY waktu ASC");
+        $stmtToday->execute([date('Y-m-d'), $user['name']]);
+        
+        $stmtFuture = $db->prepare("SELECT * FROM tb_appointments WHERE tanggal > ? AND LOWER(pasien_name) = LOWER(?) ORDER BY tanggal ASC, waktu ASC LIMIT 10");
+        $stmtFuture->execute([date('Y-m-d'), $user['name']]);
+    } else {
+        $stmtToday = $db->prepare("SELECT * FROM tb_appointments WHERE tanggal = ? ORDER BY waktu ASC");
+        $stmtToday->execute([date('Y-m-d')]);
+
+        $stmtFuture = $db->prepare("SELECT * FROM tb_appointments WHERE tanggal > ? ORDER BY tanggal ASC, waktu ASC LIMIT 10");
+        $stmtFuture->execute([date('Y-m-d')]);
+    }
+    
+    $jadwalHariIni = $stmtToday->fetchAll(PDO::FETCH_ASSOC);
+    $jadwalMendatang = $stmtFuture->fetchAll(PDO::FETCH_ASSOC);
+
+    // 2. Calendar counters
+    $stmtCal = $db->prepare("SELECT tanggal FROM tb_appointments WHERE tanggal LIKE ?");
+    $stmtCal->execute([$currentYear . '-' . str_pad($currentMonth, 2, '0', STR_PAD_LEFT) . '%']);
+    while ($row = $stmtCal->fetch(PDO::FETCH_ASSOC)) {
+        $day = (int)date('j', strtotime($row['tanggal']));
+        if (!isset($jadwalPerTanggal[$day])) {
+            $jadwalPerTanggal[$day] = 0;
+        }
+        $jadwalPerTanggal[$day]++;
+    }
+} catch (PDOException $e) {
+    // Ignored fallback
 }
 ?>
 <?php require_once __DIR__ . '/../layout/header.php'; ?>
@@ -62,6 +88,12 @@ if ($userRole === 'patient') {
 
 <main class="lg:ml-64 min-h-[calc(100vh-4rem)] bg-gray-50 dark:bg-slate-950 transition-colors">
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <?php if ($success): ?>
+        <div class="mb-4 p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 text-emerald-800 dark:text-emerald-450 rounded-xl text-sm font-medium"><?= htmlspecialchars($success) ?></div>
+    <?php endif; ?>
+    <?php if ($error): ?>
+        <div class="mb-4 p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 text-rose-800 dark:text-rose-450 rounded-xl text-sm font-medium"><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
 
     <!-- Breadcrumb -->
     <nav class="flex items-center gap-2 text-sm text-gray-400 mb-5">
@@ -153,12 +185,12 @@ if ($userRole === 'patient') {
                     <div class="px-5 py-3.5 hover:bg-gray-50/50 dark:hover:bg-slate-800/10 transition-colors">
                         <div class="flex items-center gap-3">
                             <div class="text-center shrink-0 w-12">
-                                <p class="text-sm font-bold text-teal-600 dark:text-emerald-450"><?= $j['waktu'] ?></p>
+                                <p class="text-sm font-bold text-teal-600 dark:text-emerald-450"><?= date('H:i', strtotime($j['waktu'])) ?></p>
                             </div>
                             <div class="w-px h-10 bg-teal-200 dark:bg-slate-700"></div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm font-semibold text-gray-800 dark:text-slate-100"><?= $j['pasien'] ?></p>
-                                <p class="text-xs text-gray-400 dark:text-slate-450 truncate"><?= $j['jenis'] ?> &bull; <?= $j['dokter'] ?></p>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-slate-100"><?= htmlspecialchars($j['pasien_name']) ?></p>
+                                <p class="text-xs text-gray-400 dark:text-slate-450 truncate"><?= htmlspecialchars($j['jenis']) ?> &bull; <?= htmlspecialchars($j['dokter_name']) ?></p>
                             </div>
                             <span class="text-[9px] font-bold px-2 py-0.5 rounded-full border <?= $sClass ?>"><?= $j['status'] ?></span>
                         </div>
@@ -175,9 +207,9 @@ if ($userRole === 'patient') {
                 <div class="divide-y divide-gray-50 dark:divide-slate-850/40">
                     <?php foreach ($jadwalMendatang as $jm): ?>
                     <div class="px-5 py-3 hover:bg-gray-50/50 dark:hover:bg-slate-800/10 transition-colors">
-                        <p class="text-[10px] font-bold text-emerald-500 mb-0.5"><?= date('D, d M Y', strtotime($jm['tanggal'])) ?></p>
-                        <p class="text-sm font-semibold text-gray-850 dark:text-slate-200"><?= $jm['pasien'] ?></p>
-                        <p class="text-xs text-gray-450 dark:text-slate-450"><?= $jm['jenis'] ?> &bull; <?= $jm['dokter'] ?></p>
+                        <p class="text-[10px] font-bold text-emerald-500 mb-0.5"><?= date('D, d M Y', strtotime($jm['tanggal'])) ?> - <?= date('H:i', strtotime($jm['waktu'])) ?></p>
+                        <p class="text-sm font-semibold text-gray-850 dark:text-slate-200"><?= htmlspecialchars($jm['pasien_name']) ?></p>
+                        <p class="text-xs text-gray-450 dark:text-slate-450"><?= htmlspecialchars($jm['jenis']) ?> &bull; <?= htmlspecialchars($jm['dokter_name']) ?></p>
                     </div>
                     <?php endforeach; ?>
                 </div>
@@ -189,29 +221,32 @@ if ($userRole === 'patient') {
 </main>
 
 <!-- Add Schedule Modal -->
-<?= component_modal('addScheduleModal', [
-    'title' => 'Tambah Jadwal Kontrol',
-    'content' => '
-    <div class="space-y-4">
-        ' . component_input('jadwal_pasien', ['label' => 'Nama Pasien', 'placeholder' => 'Cari nama pasien...', 'required' => true, 'class' => 'dark:bg-slate-950']) . '
-        <div class="grid grid-cols-2 gap-4">
-            ' . component_input('jadwal_tanggal', ['label' => 'Tanggal', 'type' => 'date', 'required' => true, 'class' => 'dark:bg-slate-950']) . '
-            ' . component_input('jadwal_waktu', ['label' => 'Waktu', 'type' => 'time', 'required' => true, 'class' => 'dark:bg-slate-950']) . '
-        </div>
-        <div>
-            <label class="block text-sm font-semibold text-slate-350 mb-1.5 uppercase tracking-widest text-xs">Jenis Pemeriksaan</label>
-            <select class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-xl text-sm text-gray-800 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
-                <option>Kontrol Rutin</option>
-                <option>Pemeriksaan Lab</option>
-                <option>Rontgen</option>
-                <option>Evaluasi Fase</option>
-                <option>Konsultasi</option>
-            </select>
-        </div>
-        ' . component_input('jadwal_catatan', ['label' => 'Catatan Tambahan', 'type' => 'textarea', 'placeholder' => 'Tulis catatan janji kontrol...', 'class' => 'dark:bg-slate-950']) . '
-    </div>',
-    'footer' => component_button('Batal', ['variant' => 'outline', 'onclick' => "closeModal('addScheduleModal')"])
-        . ' ' . component_button('Simpan Jadwal', ['variant' => 'primary', 'class' => '!bg-emerald-600 hover:!bg-emerald-700', 'onclick' => "closeModal('addScheduleModal')"])
-]) ?>
+<form id="addScheduleForm" method="POST" action="jadwal.php">
+    <input type="hidden" name="action" value="add_appointment">
+    <?= component_modal('addScheduleModal', [
+        'title' => 'Tambah Jadwal Kontrol',
+        'content' => '
+        <div class="space-y-4">
+            ' . component_input('pasien_name', ['label' => 'Nama Pasien', 'placeholder' => 'Cari nama pasien...', 'required' => true, 'class' => 'dark:bg-slate-950']) . '
+            <div class="grid grid-cols-2 gap-4">
+                ' . component_input('tanggal', ['label' => 'Tanggal', 'type' => 'date', 'required' => true, 'class' => 'dark:bg-slate-950']) . '
+                ' . component_input('waktu', ['label' => 'Waktu', 'type' => 'time', 'required' => true, 'class' => 'dark:bg-slate-950']) . '
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-350 mb-1.5 uppercase tracking-widest text-xs">Jenis Pemeriksaan</label>
+                <select name="jenis" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-xl text-sm text-gray-800 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
+                    <option>Kontrol Rutin</option>
+                    <option>Pemeriksaan Lab</option>
+                    <option>Rontgen</option>
+                    <option>Evaluasi Fase</option>
+                    <option>Konsultasi</option>
+                </select>
+            </div>
+            ' . component_input('catatan', ['label' => 'Catatan Tambahan', 'type' => 'textarea', 'placeholder' => 'Tulis catatan janji kontrol...', 'class' => 'dark:bg-slate-950']) . '
+        </div>',
+        'footer' => component_button('Batal', ['variant' => 'outline', 'type' => 'button', 'onclick' => "closeModal('addScheduleModal')"])
+            . ' ' . component_button('Simpan Jadwal', ['variant' => 'primary', 'type' => 'submit', 'class' => '!bg-emerald-600 hover:!bg-emerald-700'])
+    ]) ?>
+</form>
 
 <?php require_once __DIR__ . '/../layout/footer.php'; ?>

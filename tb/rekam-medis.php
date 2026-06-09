@@ -20,6 +20,14 @@ $success = getFlash('success');
 
 // Handle Add Patient Form POST Submission
 $db = getDBConnection();
+$registeredPatients = [];
+try {
+    $stmtUsers = $db->query("SELECT id, name, email FROM users WHERE role = 'patient' ORDER BY name ASC");
+    $registeredPatients = $stmtUsers->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    // ignored
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_type'])) {
     
     if ($_POST['action_type'] === 'add_patient') {
@@ -375,6 +383,13 @@ $labTimeline = [
         . ' ' . component_button('Edit Rekam Medis', ['variant' => 'primary', 'class' => '!bg-emerald-600 hover:!bg-emerald-700'])
 ]) ?>
 
+<?php
+$userOptionsHTML = '<option value="">-- Pilih Akun Terdaftar (Opsional) --</option>';
+foreach ($registeredPatients as $rp) {
+    $userOptionsHTML .= '<option value="' . htmlspecialchars($rp['name']) . '" data-name="' . htmlspecialchars($rp['name']) . '">' . htmlspecialchars($rp['name']) . ' (' . htmlspecialchars($rp['email']) . ')</option>';
+}
+?>
+
 <!-- Add Patient Modal -->
 <?= component_modal('addPatientModal', [
     'title' => 'Tambah Pasien Baru',
@@ -383,6 +398,13 @@ $labTimeline = [
     <form id="addPatientForm" method="POST" action="">
         <input type="hidden" name="action_type" value="add_patient">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="mb-4 sm:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 dark:text-slate-305 mb-1.5">Hubungkan ke Akun Terdaftar (Opsional)</label>
+                <select id="user_account_select" onchange="autofillPatientAccount(this)" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl text-sm text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/20 dark:focus:bg-slate-900 transition-all">
+                    ' . $userOptionsHTML . '
+                </select>
+                <p class="text-[11px] text-gray-400 mt-1">Pilih jika pasien sudah melakukan registrasi akun mandiri di sistem.</p>
+            </div>
             ' . component_input('nama_pasien', ['label' => 'Nama Lengkap', 'placeholder' => 'Masukkan nama...', 'required' => true]) . '
             ' . component_input('nik', ['label' => 'NIK (16 Digit)', 'placeholder' => '3201...', 'required' => true]) . '
             ' . component_input('tgl_lahir', ['label' => 'Tanggal Lahir', 'type' => 'date', 'required' => true]) . '
@@ -503,6 +525,13 @@ $labTimeline = [
 ]) ?>
 
 <script>
+function autofillPatientAccount(selectEl) {
+    const selectedOption = selectEl.options[selectEl.selectedIndex];
+    if (selectedOption && selectedOption.value) {
+        document.getElementById('nama_pasien').value = selectedOption.getAttribute('data-name');
+    }
+}
+
 function openEditModal(patient) {
     document.getElementById('edit_id').value = patient.id || '';
     document.getElementById('edit_nama').value = patient.nama || '';

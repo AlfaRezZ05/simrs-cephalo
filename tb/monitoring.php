@@ -1,10 +1,5 @@
 <?php
-/**
- * SIMRS-TB — Monitoring Kepatuhan
- */
-
-require_once __DIR__ . '/../core/auth.php';
-require_once __DIR__ . '/../components/components.php';
+require_once __DIR__ . '/../config/database.php';
 
 requireLogin();
 requireRole(['admin', 'dokter', 'patient']);
@@ -15,32 +10,75 @@ $pageTitle = 'Poli Paru — Monitoring Kepatuhan';
 $activePage = 'monitoring';
 $userRole = getUserRole();
 
-// ── Dummy: Kepatuhan Pasien ──
-$patients = [
-    ['nama' => 'Ahmad Fauzi',   'no_rm' => 'RM-2026-0142', 'fase' => 'Intensif', 'kepatuhan' => 92,  'hari_patuh' => 55, 'total_hari' => 60, 'risiko' => 'Rendah',  'streak' => 14, 'heatmap' => [1,1,1,1,0,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1]],
-    ['nama' => 'Siti Aminah',   'no_rm' => 'RM-2026-0198', 'fase' => 'Intensif', 'kepatuhan' => 85,  'hari_patuh' => 34, 'total_hari' => 40, 'risiko' => 'Sedang',  'streak' => 5,  'heatmap' => [1,1,0,1,1,1,0,1,1,1,1,0,0,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1]],
-    ['nama' => 'Budi Santoso',  'no_rm' => 'RM-2026-0076', 'fase' => 'Lanjutan', 'kepatuhan' => 62,  'hari_patuh' => 93, 'total_hari' => 150,'risiko' => 'Tinggi',  'streak' => 0,  'heatmap' => [1,1,0,0,1,0,1,1,0,0,1,1,1,0,0,0,1,1,0,1,0,0,1,0,0,1,1,0,0,0]],
-    ['nama' => 'Dewi Lestari',  'no_rm' => 'RM-2026-0213', 'fase' => 'Intensif', 'kepatuhan' => 78,  'hari_patuh' => 25, 'total_hari' => 32, 'risiko' => 'Sedang',  'streak' => 3,  'heatmap' => [1,1,1,0,1,1,0,1,1,1,0,1,1,0,1,1,1,1,0,0,1,1,1,1,0,1,1,1,1,1]],
-    ['nama' => 'Riko Pratama',  'no_rm' => 'RM-2026-0167', 'fase' => 'Lanjutan', 'kepatuhan' => 95,  'hari_patuh' => 115,'total_hari' => 120,'risiko' => 'Rendah',  'streak' => 22, 'heatmap' => [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
-    ['nama' => 'Rina Wijaya',   'no_rm' => 'RM-2026-0089', 'fase' => 'Lanjutan', 'kepatuhan' => 45,  'hari_patuh' => 68, 'total_hari' => 150,'risiko' => 'Kritis',  'streak' => 0,  'heatmap' => [0,0,1,0,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,1,0]],
-];
+$db = getDBConnection();
+$error = getFlash('error');
+$success = getFlash('success');
 
-$summaryStats = [
-    ['label' => 'Rata-rata Kepatuhan', 'value' => '87.3%', 'color' => 'from-teal-500 to-emerald-500'],
-    ['label' => 'Pasien Patuh (>80%)',  'value' => '198',   'color' => 'from-emerald-500 to-green-500'],
-    ['label' => 'Risiko Sedang',        'value' => '43',    'color' => 'from-amber-500 to-orange-500'],
-    ['label' => 'Risiko Drop-out',      'value' => '7',     'color' => 'from-rose-500 to-red-500'],
-];
+$patients = [];
+try {
+    if ($userRole === 'patient') {
+        $stmt = $db->prepare("SELECT * FROM tb_compliance WHERE LOWER(pasien_name) = LOWER(?) ORDER BY id DESC");
+        $stmt->execute([$user['name']]);
+    } else {
+        $stmt = $db->query("SELECT * FROM tb_compliance ORDER BY id DESC");
+    }
+    $complianceList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($complianceList as $row) {
+        $heatmapArr = array_map('intval', explode(',', $row['heatmap'] ?? ''));
+        $patients[] = [
+            'nama' => $row['pasien_name'],
+            'no_rm' => $row['no_rm'],
+            'fase' => $row['fase'],
+            'kepatuhan' => $row['kepatuhan'],
+            'hari_patuh' => $row['hari_patuh'],
+            'total_hari' => $row['total_hari'],
+            'risiko' => $row['risiko'],
+            'streak' => $row['streak'],
+            'heatmap' => $heatmapArr
+        ];
+    }
+} catch (PDOException $e) {
+    // Fallback if DB query fails
+}
+
+// Calculate Summary Stats
+$avgComp = 0;
+$patuhCount = 0;
+$sedangCount = 0;
+$roCount = 0;
+
+if (count($patients) > 0) {
+    $sumComp = 0;
+    foreach ($patients as $p) {
+        $sumComp += $p['kepatuhan'];
+        if ($p['kepatuhan'] >= 80) {
+            $patuhCount++;
+        }
+        if ($p['risiko'] === 'Sedang') {
+            $sedangCount++;
+        }
+        if ($p['risiko'] === 'Tinggi' || $p['risiko'] === 'Kritis') {
+            $roCount++;
+        }
+    }
+    $avgComp = round($sumComp / count($patients), 1);
+}
 
 if ($userRole === 'patient') {
-    $patients = [
-        ['nama' => $user['name'], 'no_rm' => 'RM-2026-0245', 'fase' => 'Intensif', 'kepatuhan' => 96, 'hari_patuh' => 29, 'total_hari' => 30, 'risiko' => 'Rendah', 'streak' => 18, 'heatmap' => [1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
-    ];
+    $p = $patients[0] ?? null;
     $summaryStats = [
-        ['label' => 'Persentase Kepatuhan', 'value' => '96.7%', 'color' => 'from-teal-500 to-emerald-500'],
-        ['label' => 'Hari Patuh Menelan',  'value' => '29 / 30 Hari', 'color' => 'from-emerald-500 to-green-500'],
-        ['label' => 'Streak Beruntun',      'value' => '18 Hari', 'color' => 'from-amber-500 to-orange-500'],
-        ['label' => 'Tingkat Risiko RO',     'value' => 'Sangat Rendah', 'color' => 'from-teal-500 to-cyan-500'],
+        ['label' => 'Persentase Kepatuhan', 'value' => ($p ? $p['kepatuhan'] : 0) . '%', 'color' => 'from-teal-500 to-emerald-500'],
+        ['label' => 'Hari Patuh Menelan',  'value' => ($p ? $p['hari_patuh'] . ' / ' . $p['total_hari'] : '0 / 0') . ' Hari', 'color' => 'from-emerald-500 to-green-500'],
+        ['label' => 'Streak Beruntun',      'value' => ($p ? $p['streak'] : 0) . ' Hari', 'color' => 'from-amber-500 to-orange-500'],
+        ['label' => 'Tingkat Risiko RO',     'value' => ($p ? ($p['risiko'] === 'Rendah' ? 'Sangat Rendah' : $p['risiko']) : '-'), 'color' => 'from-teal-500 to-cyan-500'],
+    ];
+} else {
+    $summaryStats = [
+        ['label' => 'Rata-rata Kepatuhan', 'value' => $avgComp . '%', 'color' => 'from-teal-500 to-emerald-500'],
+        ['label' => 'Pasien Patuh (≥80%)',  'value' => $patuhCount,   'color' => 'from-emerald-500 to-green-500'],
+        ['label' => 'Risiko Sedang',        'value' => $sedangCount,    'color' => 'from-amber-500 to-orange-500'],
+        ['label' => 'Risiko Drop-out',      'value' => $roCount,     'color' => 'from-rose-500 to-red-500'],
     ];
 }
 ?>

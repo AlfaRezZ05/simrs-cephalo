@@ -1,10 +1,5 @@
 <?php
-/**
- * SIMRS-TB — Skrining AI Batuk
- */
-
-require_once __DIR__ . '/../core/auth.php';
-require_once __DIR__ . '/../components/components.php';
+require_once __DIR__ . '/../config/database.php';
 
 requireLogin();
 requireRole(['admin', 'dokter', 'patient']);
@@ -15,21 +10,43 @@ $pageTitle = 'Poli Paru — Skrining AI Batuk';
 $activePage = 'screening';
 $userRole = getUserRole();
 
-// ── Dummy Data: Riwayat Skrining ──
-$riwayat = [
-    ['id' => 'SCR-0045', 'nama' => 'Rina Wijaya',    'tanggal' => '2026-05-13 08:15', 'confidence' => 87.2, 'hasil' => 'Positif Indikasi',        'dirujuk' => true],
-    ['id' => 'SCR-0044', 'nama' => 'Dedi Kurniawan', 'tanggal' => '2026-05-13 07:40', 'confidence' => 23.5, 'hasil' => 'Negatif Indikasi',        'dirujuk' => false],
-    ['id' => 'SCR-0043', 'nama' => 'Fitriani',       'tanggal' => '2026-05-12 14:20', 'confidence' => 92.8, 'hasil' => 'Positif Indikasi',        'dirujuk' => true],
-    ['id' => 'SCR-0042', 'nama' => 'Agus Supriyadi', 'tanggal' => '2026-05-12 11:05', 'confidence' => 45.1, 'hasil' => 'Tidak Dapat Ditentukan',  'dirujuk' => false],
-    ['id' => 'SCR-0041', 'nama' => 'Lina Marlina',   'tanggal' => '2026-05-12 09:30', 'confidence' => 78.6, 'hasil' => 'Positif Indikasi',        'dirujuk' => true],
-    ['id' => 'SCR-0040', 'nama' => 'Bambang Setiawan','tanggal' => '2026-05-11 15:45', 'confidence' => 12.3, 'hasil' => 'Negatif Indikasi',       'dirujuk' => false],
-];
+$db = getDBConnection();
+$error = getFlash('error');
+$success = getFlash('success');
 
-if ($userRole === 'patient') {
-    $riwayat = [
-        ['id' => 'SCR-0046', 'nama' => $user['name'], 'tanggal' => '2026-05-13 08:15', 'confidence' => 84.5, 'hasil' => 'Positif Indikasi', 'dirujuk' => true],
-        ['id' => 'SCR-0021', 'nama' => $user['name'], 'tanggal' => '2026-04-10 10:30', 'confidence' => 15.2, 'hasil' => 'Negatif Indikasi', 'dirujuk' => false]
-    ];
+// POST Handler for adding screenings
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $action = $_POST['action'];
+    if ($action === 'add_screening') {
+        $nama = trim($_POST['pasien_name'] ?? '');
+        $confidence = (float)($_POST['confidence'] ?? 87.2);
+        $hasil = trim($_POST['hasil'] ?? 'Positif Indikasi');
+        $dirujuk = isset($_POST['dirujuk']) && $_POST['dirujuk'] == '1' ? 1 : 0;
+        
+        try {
+            $stmt = $db->prepare("INSERT INTO tb_screenings (pasien_name, confidence, hasil, dirujuk) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$nama, $confidence, $hasil, $dirujuk]);
+            setFlash('success', 'Skrining berhasil disimpan.');
+        } catch (PDOException $e) {
+            setFlash('error', 'Gagal menyimpan skrining: ' . $e->getMessage());
+        }
+        header("Location: screening.php");
+        exit;
+    }
+}
+
+// Fetch historical records from database
+$riwayat = [];
+try {
+    if ($userRole === 'patient') {
+        $stmtScr = $db->prepare("SELECT * FROM tb_screenings WHERE LOWER(pasien_name) = LOWER(?) ORDER BY tanggal DESC");
+        $stmtScr->execute([$user['name']]);
+    } else {
+        $stmtScr = $db->query("SELECT * FROM tb_screenings ORDER BY tanggal DESC");
+    }
+    $riwayat = $stmtScr->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    // Ignored
 }
 ?>
 <?php require_once __DIR__ . '/../layout/header.php'; ?>
@@ -38,6 +55,12 @@ if ($userRole === 'patient') {
 
 <main class="lg:ml-64 min-h-[calc(100vh-4rem)] bg-gray-50 dark:bg-slate-950 transition-colors">
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <?php if ($success): ?>
+        <div class="mb-4 p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 text-emerald-800 dark:text-emerald-450 rounded-xl text-sm font-medium"><?= htmlspecialchars($success) ?></div>
+    <?php endif; ?>
+    <?php if ($error): ?>
+        <div class="mb-4 p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 text-rose-800 dark:text-rose-450 rounded-xl text-sm font-medium"><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
 
     <!-- Breadcrumb -->
     <nav class="flex items-center gap-2 text-sm text-gray-400 mb-5">
@@ -62,6 +85,15 @@ if ($userRole === 'patient') {
                 <p class="text-xs text-gray-400 mt-0.5">Rekam suara pasien secara langsung atau unggah berkas audio</p>
             </div>
             <div class="p-5 space-y-5">
+                <?php if ($userRole === 'patient'): ?>
+                    <input type="hidden" id="input_pasien_name" value="<?= htmlspecialchars($user['name']) ?>">
+                <?php else: ?>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-350 mb-1.5 uppercase tracking-widest text-[10px]">Nama Pasien</label>
+                        <input type="text" id="input_pasien_name" placeholder="Nama pasien..." class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-xl text-sm text-gray-800 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
+                    </div>
+                <?php endif; ?>
+
                 <!-- Record Button -->
                 <div class="text-center">
                     <button id="btnRecord" onclick="toggleRecording()" 
@@ -210,14 +242,24 @@ if ($userRole === 'patient') {
                         'variant' => 'primary',
                         'fullWidth' => true,
                         'class' => '!bg-emerald-600 hover:!bg-emerald-700',
+                        'onclick' => 'submitScreening(1)',
                         'icon' => '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>'
                     ]) ?>
                     <?= component_button('Simpan Hasil', [
                         'variant' => 'outline',
                         'class' => 'dark:bg-slate-900 dark:border-slate-800 dark:hover:bg-slate-800',
+                        'onclick' => 'submitScreening(0)',
                         'icon' => '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>'
                     ]) ?>
                 </div>
+
+                <form id="saveScreeningForm" method="POST" action="screening.php" class="hidden">
+                    <input type="hidden" name="action" value="add_screening">
+                    <input type="hidden" name="pasien_name" id="form_pasien_name" value="">
+                    <input type="hidden" name="confidence" id="form_confidence" value="87.2">
+                    <input type="hidden" name="hasil" id="form_hasil" value="Positif Indikasi">
+                    <input type="hidden" name="dirujuk" id="form_dirujuk" value="0">
+                </form>
             </div>
         </div>
     </div>
@@ -361,6 +403,12 @@ function generateWaveform() {
 }
 
 function simulateAnalysis() {
+    const nameVal = document.getElementById('input_pasien_name').value.trim();
+    if (!nameVal) {
+        alert('Silakan masukkan nama pasien terlebih dahulu.');
+        return;
+    }
+
     document.getElementById('resultEmpty').classList.add('hidden');
     document.getElementById('resultDone').classList.add('hidden');
     document.getElementById('resultProgress').classList.remove('hidden');
@@ -385,8 +433,55 @@ function simulateAnalysis() {
                 document.getElementById('resultProgress').classList.add('hidden');
                 document.getElementById('resultDone').classList.remove('hidden');
                 
+                // Determine random outcome
+                let label = 'Positif Indikasi TB';
+                let desc = 'Model mendeteksi pola akustik yang konsisten dengan batuk TB. Disarankan untuk pemeriksaan lebih lanjut.';
+                let outcome = 'Positif Indikasi';
+                let score = 85.5;
+                const rand = Math.random();
+                
+                if (rand < 0.6) {
+                    score = Math.round(75 + Math.random() * 20);
+                    label = 'Positif Indikasi TB';
+                    desc = 'Model mendeteksi pola akustik yang konsisten dengan batuk TB. Disarankan untuk pemeriksaan lebih lanjut.';
+                    outcome = 'Positif Indikasi';
+                } else if (rand < 0.85) {
+                    score = Math.round(10 + Math.random() * 30);
+                    label = 'Negatif Indikasi TB';
+                    desc = 'Model mendeteksi pola akustik normal (tidak terindikasi tuberkulosis).';
+                    outcome = 'Negatif Indikasi';
+                } else {
+                    score = Math.round(41 + Math.random() * 25);
+                    label = 'Tidak Dapat Ditentukan';
+                    desc = 'Kualitas rekaman kurang baik atau pola batuk tidak spesifik. Silakan rekam ulang.';
+                    outcome = 'Tidak Dapat Ditentukan';
+                }
+
+                // Update UI elements
+                document.getElementById('resultScore').textContent = score + '%';
+                document.getElementById('resultLabel').textContent = label;
+                document.getElementById('resultDesc').textContent = desc;
+
+                // Update Badge Class
+                const resultBadge = document.getElementById('resultBadge');
+                resultBadge.className = 'border rounded-xl p-4 mb-4';
+                if (outcome === 'Positif Indikasi') {
+                    resultBadge.className = 'border rounded-xl p-4 mb-4 bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/30';
+                    document.getElementById('resultLabel').className = 'text-sm font-semibold text-red-750 dark:text-red-400';
+                } else if (outcome === 'Negatif Indikasi') {
+                    resultBadge.className = 'border rounded-xl p-4 mb-4 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30';
+                    document.getElementById('resultLabel').className = 'text-sm font-semibold text-emerald-705 dark:text-emerald-450';
+                } else {
+                    resultBadge.className = 'border rounded-xl p-4 mb-4 bg-amber-50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/30';
+                    document.getElementById('resultLabel').className = 'text-sm font-semibold text-amber-705 dark:text-amber-450';
+                }
+
+                // Set values in form
+                document.getElementById('form_pasien_name').value = nameVal;
+                document.getElementById('form_confidence').value = score;
+                document.getElementById('form_hasil').value = outcome;
+
                 const gauge = document.getElementById('gaugeArc');
-                const score = 87.2;
                 setTimeout(() => {
                     gauge.style.transition = 'stroke-dashoffset 1.5s ease-out';
                     gauge.style.strokeDashoffset = 220 - (220 * score / 100);
@@ -394,6 +489,11 @@ function simulateAnalysis() {
             }, 500);
         }
     }, 200);
+}
+
+function submitScreening(dirujukVal) {
+    document.getElementById('form_dirujuk').value = dirujukVal;
+    document.getElementById('saveScreeningForm').submit();
 }
 </script>
 
