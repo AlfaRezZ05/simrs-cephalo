@@ -7,12 +7,13 @@ require_once __DIR__ . '/../core/auth.php';
 require_once __DIR__ . '/../components/components.php';
 
 requireLogin();
-requireRole(['admin', 'dokter']);
+requireRole(['admin', 'dokter', 'patient']);
 startSession();
 
 $user = getCurrentUser();
 $pageTitle = 'Poli Paru — Jadwal Kontrol';
 $activePage = 'jadwal';
+$userRole = getUserRole();
 
 // ── Dummy: Jadwal ──
 $jadwalHariIni = [
@@ -41,6 +42,19 @@ $today = date('j');
 
 // Jadwal per tanggal (dummy)
 $jadwalPerTanggal = [3 => 2, 5 => 1, 8 => 3, 10 => 1, 13 => 7, 14 => 2, 15 => 1, 16 => 1, 18 => 2, 22 => 4, 25 => 3, 28 => 1];
+
+if ($userRole === 'patient') {
+    $jadwalHariIni = [
+        ['waktu' => '10:00', 'pasien' => $user['name'], 'jenis' => 'Kontrol Rutin & Evaluasi Klinis', 'dokter' => 'dr. Rina Susanti', 'status' => 'Terjadwal']
+    ];
+    $jadwalMendatang = [
+        ['tanggal' => date('Y-m-d', strtotime('+7 days')), 'pasien' => $user['name'], 'jenis' => 'Pemeriksaan Lab Lanjutan', 'dokter' => 'dr. Hendra Wijaya']
+    ];
+    // Mark only today's date and 7 days from now on calendar
+    $todayDate = (int)date('j');
+    $futureDate = (int)date('j', strtotime('+7 days'));
+    $jadwalPerTanggal = [$todayDate => 1, $futureDate => 1];
+}
 ?>
 <?php require_once __DIR__ . '/../layout/header.php'; ?>
 <?php require_once __DIR__ . '/../layout/navbar.php'; ?>
@@ -63,11 +77,13 @@ $jadwalPerTanggal = [3 => 2, 5 => 1, 8 => 3, 10 => 1, 13 => 7, 14 => 2, 15 => 1,
             <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2"><svg class="w-6 h-6 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>Jadwal Kontrol</h1>
             <p class="text-gray-500 dark:text-slate-400 text-sm mt-1">Kelola agenda kunjungan pemeriksaan klinis pasien TB</p>
         </div>
+        <?php if ($userRole !== 'patient'): ?>
         <?= component_button('+ Tambah Jadwal', [
             'variant' => 'primary',
             'class' => '!bg-emerald-600 hover:!bg-emerald-700 !shadow-emerald-500/20 border border-emerald-500/10',
             'onclick' => "openModal('addScheduleModal')"
         ]) ?>
+        <?php endif; ?>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">

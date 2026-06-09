@@ -7,12 +7,13 @@ require_once __DIR__ . '/../core/auth.php';
 require_once __DIR__ . '/../components/components.php';
 
 requireLogin();
-requireRole(['admin', 'dokter']);
+requireRole(['admin', 'dokter', 'patient']);
 startSession();
 
 $user = getCurrentUser();
 $pageTitle = 'Poli Paru — Monitoring Kepatuhan';
 $activePage = 'monitoring';
+$userRole = getUserRole();
 
 // ── Dummy: Kepatuhan Pasien ──
 $patients = [
@@ -30,6 +31,18 @@ $summaryStats = [
     ['label' => 'Risiko Sedang',        'value' => '43',    'color' => 'from-amber-500 to-orange-500'],
     ['label' => 'Risiko Drop-out',      'value' => '7',     'color' => 'from-rose-500 to-red-500'],
 ];
+
+if ($userRole === 'patient') {
+    $patients = [
+        ['nama' => $user['name'], 'no_rm' => 'RM-2026-0245', 'fase' => 'Intensif', 'kepatuhan' => 96, 'hari_patuh' => 29, 'total_hari' => 30, 'risiko' => 'Rendah', 'streak' => 18, 'heatmap' => [1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
+    ];
+    $summaryStats = [
+        ['label' => 'Persentase Kepatuhan', 'value' => '96.7%', 'color' => 'from-teal-500 to-emerald-500'],
+        ['label' => 'Hari Patuh Menelan',  'value' => '29 / 30 Hari', 'color' => 'from-emerald-500 to-green-500'],
+        ['label' => 'Streak Beruntun',      'value' => '18 Hari', 'color' => 'from-amber-500 to-orange-500'],
+        ['label' => 'Tingkat Risiko RO',     'value' => 'Sangat Rendah', 'color' => 'from-teal-500 to-cyan-500'],
+    ];
+}
 ?>
 <?php require_once __DIR__ . '/../layout/header.php'; ?>
 <?php require_once __DIR__ . '/../layout/navbar.php'; ?>
@@ -49,7 +62,9 @@ $summaryStats = [
 
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2"><svg class="w-6 h-6 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Monitoring Kepatuhan</h1>
-        <p class="text-gray-500 dark:text-slate-400 text-sm mt-1">Pantau kepatuhan minum OAT harian dan deteksi dini risiko drop-out berobat</p>
+        <p class="text-gray-500 dark:text-slate-400 text-sm mt-1">
+            <?= $userRole === 'patient' ? 'Pantau grafik kepatuhan minum obat Anti Tuberkulosis (OAT) harian Anda' : 'Pantau kepatuhan minum OAT harian dan deteksi dini risiko drop-out berobat' ?>
+        </p>
     </div>
 
     <!-- Summary Stats -->

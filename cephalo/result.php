@@ -8,12 +8,13 @@ require_once __DIR__ . '/../core/auth.php';
 require_once __DIR__ . '/../config/database.php';
 
 requireLogin();
-requireRole(['admin', 'dokter']);
+requireRole(['admin', 'dokter', 'patient']);
 startSession();
 
 $user = getCurrentUser();
 $userName = $user['name'] ?? 'Pakar Medis';
 $userInitials = getUserInitials();
+$userRole = getUserRole();
 
 // 1. Tangkap ID Analisis dari URL
 $id_analisis = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -35,6 +36,11 @@ $data = $stmt->fetch();
 
 if (!$data) {
     echo "<script>alert('Rekam medis tidak valid!'); window.location.href='index.php';</script>";
+    exit();
+}
+
+if ($userRole === 'patient' && strtolower($data['nama_pasien']) !== strtolower($user['name'])) {
+    echo "<script>alert('Akses ditolak: Rekam medis ini bukan milik Anda!'); window.location.href='index.php';</script>";
     exit();
 }
 

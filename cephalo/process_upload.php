@@ -7,13 +7,18 @@ require_once __DIR__ . '/../core/auth.php';
 require_once __DIR__ . '/../config/database.php';
 
 requireLogin();
-requireRole(['admin', 'dokter']);
+requireRole(['admin', 'dokter', 'patient']);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $pdo = getDBConnection();
+    $user = getCurrentUser();
+    $userRole = getUserRole();
 
     // 1. Tangkap data teks dari form
     $nama = $_POST['nama_pasien'];
+    if ($userRole === 'patient') {
+        $nama = $user['name'];
+    }
     $nik = $_POST['nik'];
     $usia = (int)$_POST['usia'];
     $jenis_kelamin = $_POST['jenis_kelamin'];

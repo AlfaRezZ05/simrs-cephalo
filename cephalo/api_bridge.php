@@ -9,7 +9,10 @@ require_once __DIR__ . '/../core/auth.php';
 require_once __DIR__ . '/../config/database.php';
 
 startSession();
-requireRole(['admin', 'dokter']);
+requireRole(['admin', 'dokter', 'patient']);
+
+$user = getCurrentUser();
+$userRole = getUserRole();
 
 header('Content-Type: application/json');
 
@@ -24,13 +27,21 @@ $overlap = isset($_GET['overlap']) ? (int)$_GET['overlap'] : 50;
 
 $pdo = getDBConnection();
 
-// 1. Ambil nama file dari DB
-$stmt = $pdo->prepare("SELECT foto_rontgen FROM modul_11_sefalometri WHERE id_analisis = ?");
+// 1. Ambil nama file & pasien dari DB
+$stmt = $pdo->prepare("SELECT s.foto_rontgen, p.nama_pasien 
+                       FROM modul_11_sefalometri s 
+                       JOIN modul_11_pasien p ON s.id_pasien = p.id_pasien 
+                       WHERE s.id_analisis = ?");
 $stmt->execute([$id_analisis]);
 $data = $stmt->fetch();
 
 if (!$data) {
     echo json_encode(["status" => "error", "message" => "Data tidak ditemukan di database"]);
+    exit();
+}
+
+if ($userRole === 'patient' && strtolower($data['nama_pasien']) !== strtolower($user['name'])) {
+    echo json_encode(["status" => "error", "message" => "Akses ditolak: Data ini bukan milik Anda"]);
     exit();
 }
 

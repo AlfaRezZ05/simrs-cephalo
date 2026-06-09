@@ -172,7 +172,7 @@ $pageTitle = 'Poli Paru — Sistem Informasi Tuberkulosis';
 
                 <div class="flex flex-col sm:flex-row items-center justify-center gap-4 start-hidden animate-fade-up delay-300">
                     <a href="dashboard.php" class="group inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-2xl text-white font-semibold text-base shadow-xl shadow-teal-500/25 hover:shadow-2xl hover:shadow-teal-500/40 hover:scale-105 active:scale-95 transition-all duration-300 animate-pulse-glow">
-                        Masuk ke Dashboard Klinik
+                        <?= getUserRole() === 'patient' ? 'Buka Portal Pasien' : 'Masuk ke Dashboard Klinik' ?>
                         <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                         </svg>

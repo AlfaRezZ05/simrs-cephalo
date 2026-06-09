@@ -47,7 +47,7 @@ $pageTitle = 'Portal SIMRS Terintegrasi';
     <!-- Poli (Clinics) Grid System -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         
-        <?php if (in_array($userRole, ['admin', 'dokter'])): ?>
+        <?php if (in_array($userRole, ['admin', 'dokter', 'patient'])): ?>
         <!-- ======================= -->
         <!-- 1. POLI PARU (ACTIVE) -->
         <!-- ======================= -->
@@ -103,7 +103,7 @@ $pageTitle = 'Portal SIMRS Terintegrasi';
         </div>
         <?php endif; ?>
 
-        <?php if (in_array($userRole, ['admin', 'dokter'])): ?>
+        <?php if (in_array($userRole, ['admin', 'dokter', 'patient'])): ?>
         <!-- ======================= -->
         <!-- 2. POLI GIGI (ACTIVE) -->
         <!-- ======================= -->
@@ -206,7 +206,7 @@ $pageTitle = 'Portal SIMRS Terintegrasi';
         </div>
         <?php endif; ?>
 
-        <?php if (in_array($userRole, ['admin', 'dokter'])): ?>
+        <?php if (in_array($userRole, ['admin', 'dokter', 'patient'])): ?>
         <!-- ======================= -->
         <!-- 3. POLI JANTUNG (LOCKED) -->
         <!-- ======================= -->

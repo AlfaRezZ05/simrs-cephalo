@@ -9,12 +9,13 @@ require_once __DIR__ . '/../core/auth.php';
 require_once __DIR__ . '/../components/components.php';
 
 requireLogin();
-requireRole(['admin', 'dokter']);
+requireRole(['admin', 'dokter', 'patient']);
 startSession();
 
 $user = getCurrentUser();
 $userName = $user['name'] ?? 'Pakar Medis';
 $userInitials = getUserInitials();
+$userRole = getUserRole();
 
 // ── Database Initialization ──
 $pdo = getDBConnection();
@@ -64,15 +65,46 @@ if ($driver === 'mysql') {
     );");
 }
 
+// Fetch current patient record if user is a patient
+$patientRecord = null;
+if ($userRole === 'patient') {
+    $stmt = $pdo->prepare("SELECT * FROM modul_11_pasien WHERE LOWER(nama_pasien) = LOWER(?) LIMIT 1");
+    $stmt->execute([$user['name']]);
+    $patientRecord = $stmt->fetch();
+}
+
 // Fetch database records
-$sql = "SELECT p.nama_pasien, p.nik, p.usia, p.jenis_kelamin, s.id_analisis, s.foto_rontgen, s.waktu_upload, s.data_landmark 
-        FROM modul_11_pasien p 
-        JOIN modul_11_sefalometri s ON p.id_pasien = s.id_pasien 
-        ORDER BY s.waktu_upload DESC";
-$stmt = $pdo->query($sql);
-$riwayat_pasien = $stmt->fetchAll();
+if ($userRole === 'patient') {
+    if ($patientRecord) {
+        $sql = "SELECT p.nama_pasien, p.nik, p.usia, p.jenis_kelamin, s.id_analisis, s.foto_rontgen, s.waktu_upload, s.data_landmark 
+                FROM modul_11_pasien p 
+                JOIN modul_11_sefalometri s ON p.id_pasien = s.id_pasien 
+                WHERE p.id_pasien = ?
+                ORDER BY s.waktu_upload DESC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$patientRecord['id_pasien']]);
+        $riwayat_pasien = $stmt->fetchAll();
+    } else {
+        $riwayat_pasien = [];
+    }
+} else {
+    $sql = "SELECT p.nama_pasien, p.nik, p.usia, p.jenis_kelamin, s.id_analisis, s.foto_rontgen, s.waktu_upload, s.data_landmark 
+            FROM modul_11_pasien p 
+            JOIN modul_11_sefalometri s ON p.id_pasien = s.id_pasien 
+            ORDER BY s.waktu_upload DESC";
+    $stmt = $pdo->query($sql);
+    $riwayat_pasien = $stmt->fetchAll();
+}
 
 $pageTitle = 'Poli Gigi — Cephalo AI';
+
+// Set up conditional autofill vars for form
+$isPatient = ($userRole === 'patient');
+$patNama = $isPatient ? ($patientRecord['nama_pasien'] ?? $user['name']) : '';
+$patNik = $isPatient ? ($patientRecord['nik'] ?? '') : '';
+$patUsia = $isPatient ? ($patientRecord['usia'] ?? '') : '';
+$patJk = $isPatient ? ($patientRecord['jenis_kelamin'] ?? '') : '';
+$isReadOnly = ($isPatient && !empty($patNik));
 ?>
 <?php require_once __DIR__ . '/../layout/header.php'; ?>
 <?php require_once __DIR__ . '/../layout/navbar.php'; ?>
@@ -392,23 +424,31 @@ $pageTitle = 'Poli Gigi — Cephalo AI';
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
                     <div>
                         <label class="sim-label" for="nama_pasien">Nama Lengkap Pasien</label>
-                        <input type="text" id="nama_pasien" name="nama_pasien" class="sim-input" placeholder="Nama pasien..." required>
+                        <input type="text" id="nama_pasien" name="nama_pasien" class="sim-input" value="<?= htmlspecialchars($patNama) ?>" <?= $isPatient ? 'readonly' : '' ?> placeholder="Nama pasien..." required>
                     </div>
                     <div>
                         <label class="sim-label" for="nik">Nomor Rekam Medis (NIK)</label>
-                        <input type="number" id="nik" name="nik" class="sim-input" placeholder="16 digit NIK..." required>
+                        <input type="number" id="nik" name="nik" class="sim-input" value="<?= htmlspecialchars($patNik) ?>" <?= $isReadOnly ? 'readonly' : '' ?> placeholder="16 digit NIK..." required>
                     </div>
                     <div>
                         <label class="sim-label" for="usia">Usia Klinis (Tahun)</label>
-                        <input type="number" id="usia" name="usia" class="sim-input" min="1" placeholder="Contoh: 25" required>
+                        <input type="number" id="usia" name="usia" class="sim-input" min="1" value="<?= htmlspecialchars($patUsia) ?>" <?= $isReadOnly ? 'readonly' : '' ?> placeholder="Contoh: 25" required>
                     </div>
                     <div>
                         <label class="sim-label" for="jenis_kelamin">Jenis Kelamin</label>
-                        <select id="jenis_kelamin" name="jenis_kelamin" class="sim-select" required>
-                            <option value="" disabled selected>Pilih klasifikasi...</option>
-                            <option value="Laki-laki">Laki-laki</option>
-                            <option value="Perempuan">Perempuan</option>
-                        </select>
+                        <?php if ($isReadOnly): ?>
+                            <select id="jenis_kelamin" class="sim-select" disabled>
+                                <option value="Laki-laki" <?= $patJk === 'Laki-laki' ? 'selected' : '' ?>>Laki-laki</option>
+                                <option value="Perempuan" <?= $patJk === 'Perempuan' ? 'selected' : '' ?>>Perempuan</option>
+                            </select>
+                            <input type="hidden" name="jenis_kelamin" value="<?= htmlspecialchars($patJk) ?>">
+                        <?php else: ?>
+                            <select id="jenis_kelamin" name="jenis_kelamin" class="sim-select" required>
+                                <option value="" disabled <?= empty($patJk) ? 'selected' : '' ?>>Pilih klasifikasi...</option>
+                                <option value="Laki-laki" <?= $patJk === 'Laki-laki' ? 'selected' : '' ?>>Laki-laki</option>
+                                <option value="Perempuan" <?= $patJk === 'Perempuan' ? 'selected' : '' ?>>Perempuan</option>
+                            </select>
+                        <?php endif; ?>
                     </div>
                 </div>
 

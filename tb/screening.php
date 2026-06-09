@@ -7,12 +7,13 @@ require_once __DIR__ . '/../core/auth.php';
 require_once __DIR__ . '/../components/components.php';
 
 requireLogin();
-requireRole(['admin', 'dokter']);
+requireRole(['admin', 'dokter', 'patient']);
 startSession();
 
 $user = getCurrentUser();
 $pageTitle = 'Poli Paru — Skrining AI Batuk';
 $activePage = 'screening';
+$userRole = getUserRole();
 
 // ── Dummy Data: Riwayat Skrining ──
 $riwayat = [
@@ -23,6 +24,13 @@ $riwayat = [
     ['id' => 'SCR-0041', 'nama' => 'Lina Marlina',   'tanggal' => '2026-05-12 09:30', 'confidence' => 78.6, 'hasil' => 'Positif Indikasi',        'dirujuk' => true],
     ['id' => 'SCR-0040', 'nama' => 'Bambang Setiawan','tanggal' => '2026-05-11 15:45', 'confidence' => 12.3, 'hasil' => 'Negatif Indikasi',       'dirujuk' => false],
 ];
+
+if ($userRole === 'patient') {
+    $riwayat = [
+        ['id' => 'SCR-0046', 'nama' => $user['name'], 'tanggal' => '2026-05-13 08:15', 'confidence' => 84.5, 'hasil' => 'Positif Indikasi', 'dirujuk' => true],
+        ['id' => 'SCR-0021', 'nama' => $user['name'], 'tanggal' => '2026-04-10 10:30', 'confidence' => 15.2, 'hasil' => 'Negatif Indikasi', 'dirujuk' => false]
+    ];
+}
 ?>
 <?php require_once __DIR__ . '/../layout/header.php'; ?>
 <?php require_once __DIR__ . '/../layout/navbar.php'; ?>

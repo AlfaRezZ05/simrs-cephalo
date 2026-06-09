@@ -7,12 +7,13 @@ require_once __DIR__ . '/../core/auth.php';
 require_once __DIR__ . '/../components/components.php';
 
 requireLogin();
-requireRole(['admin', 'dokter']);
+requireRole(['admin', 'dokter', 'patient']);
 startSession();
 
 $user = getCurrentUser();
 $pageTitle = 'Poli Paru — Dashboard';
 $activePage = 'dashboard';
+$userRole = getUserRole();
 
 require_once __DIR__ . '/../config/database.php';
 
@@ -54,6 +55,47 @@ $jadwalHariIni = [
     ['waktu' => '11:00', 'nama' => 'Hendra Gunawan', 'jenis' => 'Kontrol Rutin'],
     ['waktu' => '13:30', 'nama' => 'Maya Sari',      'jenis' => 'Konsultasi'],
 ];
+
+// Overwrite for patient role
+if ($userRole === 'patient') {
+    $patientData = null;
+    try {
+        $stmt = $db->prepare("SELECT * FROM tb_patients WHERE LOWER(nama) = LOWER(?) LIMIT 1");
+        $stmt->execute([$user['name']]);
+        $patientData = $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        // Ignored
+    }
+
+    if (!$patientData) {
+        $patientData = [
+            'nama' => $user['name'],
+            'no_rm' => 'RM-2026-0245',
+            'nik' => '3171012345678009',
+            'status' => 'Aktif',
+            'fase_pengobatan' => 'Intensif',
+            'kategori_tb' => 'Paru',
+            'no_telepon' => '081234567890',
+            'alamat' => 'Jakarta, Indonesia'
+        ];
+    }
+
+    $stats = [
+        ['label' => 'Status Pengobatan', 'value' => $patientData['status'], 'trend' => 'Terpantau', 'trendDir' => 'up', 'color' => 'from-emerald-500 to-teal-500', 'iconPath' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
+        ['label' => 'Fase Pengobatan', 'value' => $patientData['fase_pengobatan'], 'trend' => $patientData['kategori_tb'], 'trendDir' => 'up', 'color' => 'from-blue-500 to-cyan-500', 'iconPath' => 'M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z'],
+        ['label' => 'Kepatuhan Obat', 'value' => '96.7%', 'trend' => 'Sangat Baik', 'trendDir' => 'up', 'color' => 'from-violet-500 to-purple-500', 'iconPath' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
+        ['label' => 'No. Rekam Medis', 'value' => $patientData['no_rm'], 'trend' => 'Aktif', 'trendDir' => 'up', 'color' => 'from-amber-500 to-orange-500', 'iconPath' => 'M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
+    ];
+
+    $alertPasien = [
+        ['nama' => $patientData['nama'], 'no_rm' => $patientData['no_rm'], 'masalah' => 'Waktunya minum obat OAT dosis pagi hari ini.', 'prioritas' => 'Tinggi', 'fase' => $patientData['fase_pengobatan']],
+        ['nama' => $patientData['nama'], 'no_rm' => $patientData['no_rm'], 'masalah' => 'Pastikan melapor PMO setelah meminum obat.', 'prioritas' => 'Sedang', 'fase' => $patientData['fase_pengobatan']],
+    ];
+
+    $jadwalHariIni = [
+        ['waktu' => '10:00', 'nama' => $patientData['nama'], 'jenis' => 'Kontrol Rutin & Evaluasi Klinis']
+    ];
+}
 ?>
 <?php require_once __DIR__ . '/../layout/header.php'; ?>
 <?php require_once __DIR__ . '/../layout/navbar.php'; ?>
@@ -75,17 +117,23 @@ $jadwalHariIni = [
     <!-- Page Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-white">Dashboard Poli Paru (SIMRS-TB)</h1>
-            <p class="text-slate-400 text-sm mt-1">Ringkasan data klinis pasien TB hari ini — <?= date('d F Y') ?></p>
+            <h1 class="text-2xl font-bold text-white"><?= $userRole === 'patient' ? 'Portal Pasien Tuberkulosis' : 'Dashboard Poli Paru (SIMRS-TB)' ?></h1>
+            <p class="text-slate-400 text-sm mt-1">
+                <?= $userRole === 'patient' 
+                    ? 'Selamat datang kembali, ' . htmlspecialchars($user['name']) . '. Pantau perkembangan pengobatan Anda secara real-time.' 
+                    : 'Ringkasan data klinis pasien TB hari ini — ' . date('d F Y') ?>
+            </p>
         </div>
         <div class="flex items-center gap-2">
-            <?= component_button('Pasien Baru', [
-                'variant' => 'primary',
-                'href' => 'rekam-medis.php',
-                'class' => '!bg-emerald-600 hover:!bg-emerald-700 !shadow-emerald-500/20 border border-emerald-500/10',
-                'icon' => '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>'
-            ]) ?>
-            <?= component_button('Skrining Suara', [
+            <?php if ($userRole !== 'patient'): ?>
+                <?= component_button('Pasien Baru', [
+                    'variant' => 'primary',
+                    'href' => 'rekam-medis.php',
+                    'class' => '!bg-emerald-600 hover:!bg-emerald-700 !shadow-emerald-500/20 border border-emerald-500/10',
+                    'icon' => '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>'
+                ]) ?>
+            <?php endif; ?>
+            <?= component_button($userRole === 'patient' ? 'Skrining Suara Mandiri' : 'Skrining Suara', [
                 'variant' => 'outline',
                 'href' => 'screening.php',
                 'class' => 'dark:bg-slate-900 dark:border-slate-800 dark:hover:bg-slate-800',
@@ -114,6 +162,7 @@ $jadwalHariIni = [
         <?php endforeach; ?>
     </div>
 
+    <?php if ($userRole !== 'patient'): ?>
     <!-- Charts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <!-- Tren Kasus TB -->
@@ -144,6 +193,79 @@ $jadwalHariIni = [
             </div>
         </div>
     </div>
+    <?php else: ?>
+    <!-- Patient-Specific Treatment Details & Compliance Guidance -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <!-- Rencana & Panduan Pengobatan -->
+        <div class="lg:col-span-2 rounded-2xl p-6" style="background: var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(16px);">
+            <div class="flex items-center justify-between mb-4 border-b border-white/[0.06] pb-3">
+                <div>
+                    <h3 class="text-base font-semibold text-white">Panduan Pengobatan Pasien TB</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Panduan penting kepatuhan konsumsi obat Anti Tuberkulosis (OAT)</p>
+                </div>
+                <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold rounded-lg">Fase: <?= htmlspecialchars($patientData['fase_pengobatan']) ?></span>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="flex gap-3.5 items-start">
+                    <div class="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 shrink-0 font-bold">1</div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-white">Aturan Minum Obat OAT</h4>
+                        <p class="text-xs text-slate-400 mt-0.5">Minum obat setiap pagi saat perut kosong (1 jam sebelum makan) atau sesuai instruksi khusus dokter Anda.</p>
+                    </div>
+                </div>
+                <div class="flex gap-3.5 items-start">
+                    <div class="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 shrink-0 font-bold">2</div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-white">Jangan Putus Obat</h4>
+                        <p class="text-xs text-slate-400 mt-0.5">Pengobatan TB berlangsung minimal 6 bulan. Menghentikan obat sebelum waktunya berisiko menyebabkan TB Resisten Obat (TB-RO).</p>
+                    </div>
+                </div>
+                <div class="flex gap-3.5 items-start">
+                    <div class="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 shrink-0 font-bold">3</div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-white">Pantau Efek Samping</h4>
+                        <p class="text-xs text-slate-400 mt-0.5">Bila Anda mengalami mual/muntah hebat, gatal-gatal, nyeri sendi, atau gangguan penglihatan, segera hubungi dokter.</p>
+                    </div>
+                </div>
+                <div class="flex gap-3.5 items-start">
+                    <div class="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 shrink-0 font-bold">4</div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-white">Jadwal Pemeriksaan Ulang Dahak (BTA)</h4>
+                        <p class="text-xs text-slate-400 mt-0.5">Pemeriksaan dahak lanjutan akan dijadwalkan pada akhir bulan ke-2 (fase intensif) dan bulan ke-6 (fase lanjutan).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profil Rekam Medis Ringkas -->
+        <div class="rounded-2xl p-6" style="background: var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(16px);">
+            <h3 class="text-base font-semibold text-white mb-1">Informasi Klinis Anda</h3>
+            <p class="text-xs text-slate-400 mb-4">Detail kartu rekam medis yang terdaftar</p>
+            
+            <div class="space-y-3 text-xs">
+                <div class="p-3 bg-slate-950/40 rounded-xl border border-white/[0.04]">
+                    <span class="text-[10px] text-slate-500 uppercase font-semibold">Nama Pasien</span>
+                    <p class="text-sm font-bold text-white mt-0.5"><?= htmlspecialchars($patientData['nama']) ?></p>
+                </div>
+                <div class="p-3 bg-slate-950/40 rounded-xl border border-white/[0.04]">
+                    <span class="text-[10px] text-slate-500 uppercase font-semibold">Nomor NIK</span>
+                    <p class="text-sm font-mono text-white mt-0.5"><?= htmlspecialchars($patientData['nik']) ?></p>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="p-3 bg-slate-950/40 rounded-xl border border-white/[0.04]">
+                        <span class="text-[10px] text-slate-500 uppercase font-semibold">Kategori TB</span>
+                        <p class="text-sm font-bold text-teal-400 mt-0.5"><?= htmlspecialchars($patientData['kategori_tb']) ?></p>
+                    </div>
+                    <div class="p-3 bg-slate-950/40 rounded-xl border border-white/[0.04]">
+                        <span class="text-[10px] text-slate-500 uppercase font-semibold">Fase</span>
+                        <p class="text-sm font-bold text-cyan-400 mt-0.5"><?= htmlspecialchars($patientData['fase_pengobatan']) ?></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <!-- Bottom Row: Alert + Jadwal -->
     <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
@@ -151,10 +273,17 @@ $jadwalHariIni = [
         <div class="lg:col-span-3 rounded-2xl overflow-hidden" style="background: var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(16px);">
             <div class="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between">
                 <div>
-                    <h3 class="text-base font-semibold text-white flex items-center gap-2"><svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>Alert Pasien Aktif</h3>
-                    <p class="text-xs text-gray-400 mt-0.5">Pasien yang membutuhkan atensi medis klinis harian</p>
+                    <h3 class="text-base font-semibold text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                        </svg>
+                        <?= $userRole === 'patient' ? 'Tugas & Alarm Pemantauan Anda' : 'Alert Pasien Aktif' ?>
+                    </h3>
+                    <p class="text-xs text-gray-400 mt-0.5">
+                        <?= $userRole === 'patient' ? 'Patuhi agenda harian pemantauan kesehatan Anda' : 'Pasien yang membutuhkan atensi medis harian' ?>
+                    </p>
                 </div>
-                <?= component_badge(count($alertPasien) . ' pasien', 'warning') ?>
+                <?= component_badge(count($alertPasien) . ($userRole === 'patient' ? ' Agenda' : ' pasien'), 'warning') ?>
             </div>
             <div class="divide-y divide-white/[0.04]">
                 <?php foreach ($alertPasien as $alert): 
@@ -182,7 +311,12 @@ $jadwalHariIni = [
         <div class="lg:col-span-2 rounded-2xl overflow-hidden" style="background: var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(16px);">
             <div class="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between">
                 <div>
-                    <h3 class="text-base font-semibold text-white flex items-center gap-2"><svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>Jadwal Kontrol Hari Ini</h3>
+                    <h3 class="text-base font-semibold text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <?= $userRole === 'patient' ? 'Jadwal Kontrol Anda' : 'Jadwal Kontrol Hari Ini' ?>
+                    </h3>
                     <p class="text-xs text-gray-400 mt-0.5"><?= date('l, d M Y') ?></p>
                 </div>
                 <a href="jadwal.php" class="text-xs text-emerald-400 hover:underline font-semibold">Lihat Semua →</a>
@@ -195,8 +329,8 @@ $jadwalHariIni = [
                     </div>
                     <div class="w-px h-8 bg-slate-700"></div>
                     <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-slate-100 truncate"><?= $j['nama'] ?></p>
-                        <p class="text-xs text-slate-500"><?= $j['jenis'] ?></p>
+                        <p class="text-sm font-medium text-slate-100 truncate"><?= $userRole === 'patient' ? $j['jenis'] : $j['nama'] ?></p>
+                        <p class="text-xs text-slate-500"><?= $userRole === 'patient' ? 'Klinik Poli Paru' : $j['jenis'] ?></p>
                     </div>
                 </div>
                 <?php endforeach; ?>
@@ -207,6 +341,7 @@ $jadwalHariIni = [
 </div>
 </main>
 
+<?php if ($userRole !== 'patient'): ?>
 <script>
 // ── Tren Kasus TB Chart ──
 const trendCtx = document.getElementById('trendChart').getContext('2d');
@@ -270,5 +405,6 @@ new Chart(phaseCtx, {
     }
 });
 </script>
+<?php endif; ?>
 
 <?php require_once __DIR__ . '/../layout/footer.php'; ?>
