@@ -21,7 +21,7 @@ $action = $_POST['action_type'] ?? '';
 $targetUserId = (int)($_POST['user_id'] ?? 0);
 
 // Prevention checks
-if ($targetUserId === (int)$currentUser['id']) {
+if (in_array($action, ['update_role', 'delete_user']) && $targetUserId === (int)$currentUser['id']) {
     setFlash('error', 'Tindakan ilegal: Anda tidak dapat mengubah peran atau menghapus akun Anda sendiri.');
     header('Location: ' . BASE_URL . '/admin/users.php');
     exit;
@@ -53,6 +53,26 @@ elseif ($action === 'delete_user') {
         setFlash('success', 'Akun pengguna berhasil dihapus secara permanen.');
     } catch (PDOException $e) {
         setFlash('error', 'Gagal menghapus pengguna: ' . $e->getMessage());
+    }
+}
+
+elseif ($action === 'update_password') {
+    $newPassword = $_POST['new_password'] ?? '';
+    $confirmPassword = $_POST['confirm_password'] ?? '';
+
+    if (strlen($newPassword) < 6) {
+        setFlash('error', 'Kata sandi baru minimal harus 6 karakter.');
+    } elseif ($newPassword !== $confirmPassword) {
+        setFlash('error', 'Konfirmasi kata sandi baru tidak cocok.');
+    } else {
+        try {
+            $hashed = password_hash($newPassword, PASSWORD_DEFAULT);
+            $stmt = $db->prepare("UPDATE users SET password = ? WHERE id = ?");
+            $stmt->execute([$hashed, $targetUserId]);
+            setFlash('success', 'Kata sandi pengguna berhasil diperbarui.');
+        } catch (PDOException $e) {
+            setFlash('error', 'Gagal memperbarui kata sandi: ' . $e->getMessage());
+        }
     }
 }
 
